@@ -1,4 +1,6 @@
-﻿namespace ChatWinForms
+﻿using System.Windows.Forms;
+
+namespace ChatWinForms
 {
     partial class MainChatWindow
     {
@@ -28,19 +30,23 @@
         /// </summary>
         private void InitializeComponent()
         {
-            textBox1 = new TextBox();
+            sendTextBox = new TextBox();
             buttonSend = new Button();
             chatLayoutPanel1 = new TableLayoutPanel();
+            mainWindowFlowLayout = new FlowLayoutPanel();
+            panelForMainLayared = new Panel();
             chatLayoutPanel1.SuspendLayout();
+            panelForMainLayared.SuspendLayout();
             SuspendLayout();
             // 
-            // textBox1
+            // sendTextBox
             // 
-            textBox1.Dock = DockStyle.Fill;
-            textBox1.Location = new Point(3, 3);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(276, 27);
-            textBox1.TabIndex = 0;
+            sendTextBox.Dock = DockStyle.Fill;
+            sendTextBox.Location = new Point(3, 3);
+            sendTextBox.Name = "sendTextBox";
+            sendTextBox.Size = new Size(275, 27);
+            sendTextBox.TabIndex = 0;
+            sendTextBox.KeyDown += textBox1_KeyDown;
             // 
             // buttonSend
             // 
@@ -51,13 +57,14 @@
             buttonSend.TabIndex = 1;
             buttonSend.Text = "Send";
             buttonSend.UseVisualStyleBackColor = true;
+            buttonSend.Click += buttonSend_Click;
             // 
             // chatLayoutPanel1
             // 
             chatLayoutPanel1.ColumnCount = 2;
             chatLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            chatLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100F));
-            chatLayoutPanel1.Controls.Add(textBox1, 0, 0);
+            chatLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 101F));
+            chatLayoutPanel1.Controls.Add(sendTextBox, 0, 0);
             chatLayoutPanel1.Controls.Add(buttonSend, 1, 0);
             chatLayoutPanel1.Dock = DockStyle.Bottom;
             chatLayoutPanel1.Location = new Point(0, 521);
@@ -67,24 +74,51 @@
             chatLayoutPanel1.Size = new Size(382, 32);
             chatLayoutPanel1.TabIndex = 2;
             // 
+            // mainWindowFlowLayout
+            // 
+            mainWindowFlowLayout.AutoSize = true;
+            mainWindowFlowLayout.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            mainWindowFlowLayout.Dock = DockStyle.Top;
+            mainWindowFlowLayout.Location = new Point(0, 0);
+            mainWindowFlowLayout.Margin = new Padding(3, 4, 3, 4);
+            mainWindowFlowLayout.Name = "mainWindowFlowLayout";
+            mainWindowFlowLayout.Size = new Size(382, 0);
+            mainWindowFlowLayout.TabIndex = 4;
+            mainWindowFlowLayout.SizeChanged += mainWindowFlowLayout_SizeChanged;
+            // 
+            // panelForMainLayared
+            // 
+            panelForMainLayared.AutoScroll = true;
+            panelForMainLayared.Controls.Add(mainWindowFlowLayout);
+            panelForMainLayared.Dock = DockStyle.Fill;
+            panelForMainLayared.Location = new Point(0, 0);
+            panelForMainLayared.Name = "panelForMainLayared";
+            panelForMainLayared.Size = new Size(382, 521);
+            panelForMainLayared.TabIndex = 0;
+            // 
             // MainChatWindow
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(382, 553);
+            Controls.Add(panelForMainLayared);
             Controls.Add(chatLayoutPanel1);
-            MinimumSize = new Size(320, 480);
+            MinimumSize = new Size(320, 478);
             Name = "MainChatWindow";
             Text = "Group Chat";
             chatLayoutPanel1.ResumeLayout(false);
             chatLayoutPanel1.PerformLayout();
+            panelForMainLayared.ResumeLayout(false);
+            panelForMainLayared.PerformLayout();
             ResumeLayout(false);
         }
 
         #endregion
 
-        private TextBox textBox1;
+        private TextBox sendTextBox;
         private Button buttonSend;
         private TableLayoutPanel chatLayoutPanel1;
+        private FlowLayoutPanel mainWindowFlowLayout;
+        private Panel panelForMainLayared;
     }
 }

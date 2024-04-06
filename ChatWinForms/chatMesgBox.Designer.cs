@@ -28,95 +28,106 @@
         /// </summary>
         private void InitializeComponent()
         {
-            backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
-            label1 = new Label();
-            label2 = new Label();
-            panel2 = new Panel();
-            textBox1 = new TextBox();
-            panel3 = new Panel();
-            panel2.SuspendLayout();
-            panel3.SuspendLayout();
+            chatMesgLayoutPanel = new TableLayoutPanel();
+            userLabel = new Label();
+            panel1 = new Panel();
+            messageTextBox = new TextBox();
+            dateLabel = new Label();
+            chatMesgLayoutPanel.SuspendLayout();
+            panel1.SuspendLayout();
             SuspendLayout();
             // 
-            // label1
+            // chatMesgLayoutPanel
             // 
-            label1.AutoSize = true;
-            label1.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            label1.ForeColor = Color.White;
-            label1.Location = new Point(0, 0);
-            label1.Name = "label1";
-            label1.Size = new Size(41, 20);
-            label1.TabIndex = 0;
-            label1.Text = "User";
+            chatMesgLayoutPanel.AutoSize = true;
+            chatMesgLayoutPanel.ColumnCount = 1;
+            chatMesgLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            chatMesgLayoutPanel.Controls.Add(userLabel, 0, 0);
+            chatMesgLayoutPanel.Controls.Add(panel1, 0, 1);
+            chatMesgLayoutPanel.Controls.Add(dateLabel, 0, 2);
+            chatMesgLayoutPanel.Dock = DockStyle.Fill;
+            chatMesgLayoutPanel.Location = new Point(0, 0);
+            chatMesgLayoutPanel.Margin = new Padding(3, 4, 3, 4);
+            chatMesgLayoutPanel.Name = "chatMesgLayoutPanel";
+            chatMesgLayoutPanel.RowCount = 3;
+            chatMesgLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 29F));
+            chatMesgLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            chatMesgLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 33F));
+            chatMesgLayoutPanel.Size = new Size(290, 100);
+            chatMesgLayoutPanel.TabIndex = 0;
+            chatMesgLayoutPanel.SizeChanged += tableLayoutPanel1_SizeChanged;
             // 
-            // label2
+            // userLabel
             // 
-            label2.AutoSize = true;
-            label2.Dock = DockStyle.Right;
-            label2.ForeColor = Color.White;
-            label2.Location = new Point(608, 0);
-            label2.Name = "label2";
-            label2.Size = new Size(41, 20);
-            label2.TabIndex = 2;
-            label2.Text = "Date";
+            userLabel.AutoSize = true;
+            userLabel.Dock = DockStyle.Bottom;
+            userLabel.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            userLabel.ForeColor = Color.White;
+            userLabel.Location = new Point(3, 9);
+            userLabel.Name = "userLabel";
+            userLabel.Size = new Size(284, 20);
+            userLabel.TabIndex = 0;
+            userLabel.Text = "User";
             // 
-            // panel2
+            // panel1
             // 
-            panel2.Controls.Add(textBox1);
-            panel2.Dock = DockStyle.Bottom;
-            panel2.Location = new Point(0, 23);
-            panel2.Name = "panel2";
-            panel2.Size = new Size(649, 312);
-            panel2.TabIndex = 3;
+            panel1.AutoSize = true;
+            panel1.BackColor = Color.FromArgb(192, 64, 0);
+            panel1.Controls.Add(messageTextBox);
+            panel1.Dock = DockStyle.Fill;
+            panel1.Location = new Point(3, 33);
+            panel1.Margin = new Padding(3, 4, 3, 4);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(284, 30);
+            panel1.TabIndex = 1;
             // 
-            // textBox1
+            // messageTextBox
             // 
-            textBox1.BackColor = Color.FromArgb(192, 64, 0);
-            textBox1.BorderStyle = BorderStyle.None;
-            textBox1.Dock = DockStyle.Fill;
-            textBox1.ForeColor = Color.White;
-            textBox1.Location = new Point(0, 0);
-            textBox1.Multiline = true;
-            textBox1.Name = "textBox1";
-            textBox1.ReadOnly = true;
-            textBox1.Size = new Size(649, 312);
-            textBox1.TabIndex = 0;
-            textBox1.Text = "ExampleText";
+            messageTextBox.BackColor = Color.FromArgb(192, 64, 0);
+            messageTextBox.BorderStyle = BorderStyle.None;
+            messageTextBox.Dock = DockStyle.Fill;
+            messageTextBox.ForeColor = Color.White;
+            messageTextBox.Location = new Point(0, 0);
+            messageTextBox.Margin = new Padding(3, 4, 3, 4);
+            messageTextBox.Multiline = true;
+            messageTextBox.Name = "messageTextBox";
+            messageTextBox.ReadOnly = true;
+            messageTextBox.Size = new Size(284, 30);
+            messageTextBox.TabIndex = 0;
+            messageTextBox.Text = "ExampleText";
             // 
-            // panel3
+            // dateLabel
             // 
-            panel3.Controls.Add(label2);
-            panel3.Dock = DockStyle.Bottom;
-            panel3.Location = new Point(0, 335);
-            panel3.Name = "panel3";
-            panel3.Size = new Size(649, 35);
-            panel3.TabIndex = 2;
+            dateLabel.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            dateLabel.ForeColor = SystemColors.Window;
+            dateLabel.Location = new Point(227, 67);
+            dateLabel.Name = "dateLabel";
+            dateLabel.Size = new Size(60, 33);
+            dateLabel.TabIndex = 2;
+            dateLabel.Text = "Date";
             // 
             // chatMesgBox
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(192, 64, 0);
-            Controls.Add(panel2);
-            Controls.Add(panel3);
-            Controls.Add(label1);
+            Controls.Add(chatMesgLayoutPanel);
+            MinimumSize = new Size(0, 100);
             Name = "chatMesgBox";
-            Size = new Size(649, 370);
-            panel2.ResumeLayout(false);
-            panel2.PerformLayout();
-            panel3.ResumeLayout(false);
-            panel3.PerformLayout();
+            Size = new Size(290, 100);
+            chatMesgLayoutPanel.ResumeLayout(false);
+            chatMesgLayoutPanel.PerformLayout();
+            panel1.ResumeLayout(false);
+            panel1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
-
-        private System.ComponentModel.BackgroundWorker backgroundWorker1;
-        private Label label1;
-        private Panel panel2;
-        private Label label2;
-        private Panel panel3;
-        private TextBox textBox1;
+        private TableLayoutPanel chatMesgLayoutPanel;
+        private Label userLabel;
+        private Label dateLabel;
+        private Panel panel1;
+        private TextBox messageTextBox;
     }
 }
