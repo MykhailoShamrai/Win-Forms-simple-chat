@@ -123,7 +123,7 @@ namespace ChatWinForms
             // connectToolStripMenuItem
             // 
             connectToolStripMenuItem.Name = "connectToolStripMenuItem";
-            connectToolStripMenuItem.Size = new Size(224, 26);
+            connectToolStripMenuItem.Size = new Size(165, 26);
             connectToolStripMenuItem.Text = "Connect...";
             connectToolStripMenuItem.Click += connectToolStripMenuItem_Click;
             // 
@@ -131,13 +131,13 @@ namespace ChatWinForms
             // 
             disconnectToolStripMenuItem.Enabled = false;
             disconnectToolStripMenuItem.Name = "disconnectToolStripMenuItem";
-            disconnectToolStripMenuItem.Size = new Size(224, 26);
+            disconnectToolStripMenuItem.Size = new Size(165, 26);
             disconnectToolStripMenuItem.Text = "Disconnect";
             // 
             // exitToolStripMenuItem
             // 
             exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            exitToolStripMenuItem.Size = new Size(224, 26);
+            exitToolStripMenuItem.Size = new Size(165, 26);
             exitToolStripMenuItem.Text = "Exit";
             // 
             // MainChatWindow
