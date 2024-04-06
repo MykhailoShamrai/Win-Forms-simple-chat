@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
+
 namespace ChatWinForms
 {
     public partial class MainChatWindow : Form
@@ -12,6 +13,7 @@ namespace ChatWinForms
         public MainChatWindow()
         {
             InitializeComponent();
+            checkScrollBar();
         }
 
         private void buttonSend_Click(object sender, EventArgs e)
@@ -39,12 +41,25 @@ namespace ChatWinForms
                 msgBox.Margin = new Padding(5, 0, 50, 5);
             }
             msgBox.Width = mainWindowFlowLayout.Width - msgBox.Margin.Left - msgBox.Margin.Right;
-
+            checkScrollBar();
             mainWindowFlowLayout.Controls.Add(msgBox);
             panelForMainLayared.ScrollControlIntoView(msgBox);
-           
+
         }
 
+        void checkScrollBar()
+        {
+            if (panelForMainLayared.Height > mainWindowFlowLayout.Height)
+            {
+                panelForMainLayared.AutoScroll = false;
+                panelForMainLayared.VerticalScroll.Enabled = true;
+                panelForMainLayared.VerticalScroll.Visible = true;
+            }
+            else
+            {
+                panelForMainLayared.AutoScroll = true;
+            }
+        }
 
         private void textBox1_KeyDown(object sender, KeyEventArgs e)
         {
@@ -60,6 +75,11 @@ namespace ChatWinForms
             {
                 msgBox.Width = mainWindowFlowLayout.ClientSize.Width - msgBox.Margin.Left - msgBox.Margin.Right;
             }
+        }
+
+        private void connectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+              
         }
     }
 }

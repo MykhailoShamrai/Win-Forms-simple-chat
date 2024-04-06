@@ -45,7 +45,7 @@ namespace ChatWinForms
             {
                 user = value;
                 this.userLabel.Text = user;
-                
+
             }
         }
         private string message;
@@ -108,5 +108,6 @@ namespace ChatWinForms
         {
             changeSizeAccordingToText();
         }
+
     }
 }

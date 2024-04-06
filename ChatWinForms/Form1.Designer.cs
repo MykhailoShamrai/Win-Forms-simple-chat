@@ -35,8 +35,14 @@ namespace ChatWinForms
             chatLayoutPanel1 = new TableLayoutPanel();
             mainWindowFlowLayout = new FlowLayoutPanel();
             panelForMainLayared = new Panel();
+            menuStrip1 = new MenuStrip();
+            fileToolStripMenuItem = new ToolStripMenuItem();
+            connectToolStripMenuItem = new ToolStripMenuItem();
+            disconnectToolStripMenuItem = new ToolStripMenuItem();
+            exitToolStripMenuItem = new ToolStripMenuItem();
             chatLayoutPanel1.SuspendLayout();
             panelForMainLayared.SuspendLayout();
+            menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // sendTextBox
@@ -79,7 +85,7 @@ namespace ChatWinForms
             mainWindowFlowLayout.AutoSize = true;
             mainWindowFlowLayout.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             mainWindowFlowLayout.Dock = DockStyle.Top;
-            mainWindowFlowLayout.Location = new Point(0, 0);
+            mainWindowFlowLayout.Location = new Point(0, 28);
             mainWindowFlowLayout.Margin = new Padding(3, 4, 3, 4);
             mainWindowFlowLayout.Name = "mainWindowFlowLayout";
             mainWindowFlowLayout.Size = new Size(382, 0);
@@ -90,11 +96,49 @@ namespace ChatWinForms
             // 
             panelForMainLayared.AutoScroll = true;
             panelForMainLayared.Controls.Add(mainWindowFlowLayout);
+            panelForMainLayared.Controls.Add(menuStrip1);
             panelForMainLayared.Dock = DockStyle.Fill;
             panelForMainLayared.Location = new Point(0, 0);
             panelForMainLayared.Name = "panelForMainLayared";
             panelForMainLayared.Size = new Size(382, 521);
             panelForMainLayared.TabIndex = 0;
+            // 
+            // menuStrip1
+            // 
+            menuStrip1.ImageScalingSize = new Size(20, 20);
+            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem });
+            menuStrip1.Location = new Point(0, 0);
+            menuStrip1.Name = "menuStrip1";
+            menuStrip1.Size = new Size(382, 28);
+            menuStrip1.TabIndex = 5;
+            menuStrip1.Text = "menuStrip1";
+            // 
+            // fileToolStripMenuItem
+            // 
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { connectToolStripMenuItem, disconnectToolStripMenuItem, exitToolStripMenuItem });
+            fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            fileToolStripMenuItem.Size = new Size(46, 24);
+            fileToolStripMenuItem.Text = "File";
+            // 
+            // connectToolStripMenuItem
+            // 
+            connectToolStripMenuItem.Name = "connectToolStripMenuItem";
+            connectToolStripMenuItem.Size = new Size(224, 26);
+            connectToolStripMenuItem.Text = "Connect...";
+            connectToolStripMenuItem.Click += connectToolStripMenuItem_Click;
+            // 
+            // disconnectToolStripMenuItem
+            // 
+            disconnectToolStripMenuItem.Enabled = false;
+            disconnectToolStripMenuItem.Name = "disconnectToolStripMenuItem";
+            disconnectToolStripMenuItem.Size = new Size(224, 26);
+            disconnectToolStripMenuItem.Text = "Disconnect";
+            // 
+            // exitToolStripMenuItem
+            // 
+            exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            exitToolStripMenuItem.Size = new Size(224, 26);
+            exitToolStripMenuItem.Text = "Exit";
             // 
             // MainChatWindow
             // 
@@ -103,6 +147,7 @@ namespace ChatWinForms
             ClientSize = new Size(382, 553);
             Controls.Add(panelForMainLayared);
             Controls.Add(chatLayoutPanel1);
+            MainMenuStrip = menuStrip1;
             MinimumSize = new Size(320, 478);
             Name = "MainChatWindow";
             Text = "Group Chat";
@@ -110,6 +155,8 @@ namespace ChatWinForms
             chatLayoutPanel1.PerformLayout();
             panelForMainLayared.ResumeLayout(false);
             panelForMainLayared.PerformLayout();
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -120,5 +167,10 @@ namespace ChatWinForms
         private TableLayoutPanel chatLayoutPanel1;
         private FlowLayoutPanel mainWindowFlowLayout;
         private Panel panelForMainLayared;
+        private MenuStrip menuStrip1;
+        private ToolStripMenuItem fileToolStripMenuItem;
+        private ToolStripMenuItem connectToolStripMenuItem;
+        private ToolStripMenuItem disconnectToolStripMenuItem;
+        private ToolStripMenuItem exitToolStripMenuItem;
     }
 }

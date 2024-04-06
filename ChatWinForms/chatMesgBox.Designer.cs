@@ -55,7 +55,6 @@
             chatMesgLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 33F));
             chatMesgLayoutPanel.Size = new Size(290, 100);
             chatMesgLayoutPanel.TabIndex = 0;
-            chatMesgLayoutPanel.SizeChanged += tableLayoutPanel1_SizeChanged;
             // 
             // userLabel
             // 
