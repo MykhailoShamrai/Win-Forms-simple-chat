@@ -16,5 +16,11 @@ namespace ChatWinForms
         {
             InitializeComponent();
         }
+
+        private void checkBoxVisibleKey_CheckedChanged(object sender, EventArgs e)
+        {
+            textBoxKey.UseSystemPasswordChar = (checkBoxVisibleKey.Checked) ? false : true;
+        }
     }
 }
+    

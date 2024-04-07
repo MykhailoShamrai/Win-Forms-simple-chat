@@ -79,7 +79,9 @@ namespace ChatWinForms
 
         private void connectToolStripMenuItem_Click(object sender, EventArgs e)
         {
-              
+              ConnectionForm connectionForm = new ConnectionForm();
+
+              connectionForm.ShowDialog();
         }
     }
 }
