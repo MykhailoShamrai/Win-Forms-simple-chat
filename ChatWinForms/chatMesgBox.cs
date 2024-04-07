@@ -51,7 +51,7 @@ namespace ChatWinForms
         private string message;
         public string Message
         {
-            get { return Message; }
+            get { return message; }
             set
             {
                 message = value;
@@ -63,6 +63,7 @@ namespace ChatWinForms
         public chatMesgBox()
         {
             InitializeComponent();
+            changeSizeAccordingToText();
         }
         //https://stackoverflow.com/questions/32987649/how-to-create-a-user-control-with-rounded-corners
         [System.Runtime.InteropServices.DllImport("gdi32.dll")]
@@ -96,18 +97,19 @@ namespace ChatWinForms
             this.RecreateRegion();
         }
 
-
+        //https://stackoverflow.com/questions/8361555/why-doesnt-textrenderer-measuretext-work-properly
         void changeSizeAccordingToText()
         {
             var lineCount = messageTextBox.GetLineFromCharIndex(messageTextBox.TextLength) + 1;
-            this.Height = this.Height - messageTextBox.Height + lineCount * 19;
-            messageTextBox.Height = lineCount * 19;
+            this.Height = this.Height - messageTextBox.Height + lineCount * messageTextBox.Font.Height;
+            messageTextBox.Height = lineCount * messageTextBox.Font.Height;
         }
 
-        private void tableLayoutPanel1_SizeChanged(object sender, EventArgs e)
+
+
+        private void chatMesgLayoutPanel_SizeChanged(object sender, EventArgs e)
         {
             changeSizeAccordingToText();
         }
-
     }
 }
