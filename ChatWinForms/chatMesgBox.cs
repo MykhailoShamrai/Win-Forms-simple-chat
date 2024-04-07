@@ -100,8 +100,8 @@ namespace ChatWinForms
         void changeSizeAccordingToText()
         {
             var lineCount = messageTextBox.GetLineFromCharIndex(messageTextBox.TextLength) + 1;
-            this.Height = this.Height - messageTextBox.Height + lineCount * 20;
-            messageTextBox.Height = lineCount * 20;
+            this.Height = this.Height - messageTextBox.Height + lineCount * 19;
+            messageTextBox.Height = lineCount * 19;
         }
 
         private void tableLayoutPanel1_SizeChanged(object sender, EventArgs e)

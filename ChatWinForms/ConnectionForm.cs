@@ -12,8 +12,15 @@ namespace ChatWinForms
 {
     public partial class ConnectionForm : Form
     {
+        MainChatWindow parent = null;
         public ConnectionForm()
         {
+            InitializeComponent();
+        }
+
+        public ConnectionForm(MainChatWindow parent)
+        {
+            this.parent = parent;
             InitializeComponent();
         }
 
@@ -21,6 +28,22 @@ namespace ChatWinForms
         {
             textBoxKey.UseSystemPasswordChar = (checkBoxVisibleKey.Checked) ? false : true;
         }
+
+        private void buttonConnect_Click(object sender, EventArgs e)
+        {
+            string addres = textBoxAddress.Text;
+            string port = textBoxPort.Text;
+            string userName = textBoxUser.Text;
+            string key = textBoxKey.Text;
+
+            parent.Client.setClientsParameters(userName, key);
+            parent.Client.ConnectToServer(addres, port);
+            
+            Close();
+            Dispose();
+        }
+
+
     }
 }
     

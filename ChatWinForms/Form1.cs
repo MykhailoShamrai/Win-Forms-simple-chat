@@ -9,12 +9,22 @@ namespace ChatWinForms
 {
     public partial class MainChatWindow : Form
     {
+        private Client client;
+        public Client Client
+        {
+            get { return  client; }
+           // set { client = value; }
+        }
         private bool first = true;
         public MainChatWindow()
         {
+            client = new Client();
             InitializeComponent();
             checkScrollBar();
+            client.Connected += OnConnected;
+            client.Disconnected += OnDisconnected;
         }
+
 
         private void buttonSend_Click(object sender, EventArgs e)
         {
@@ -79,9 +89,20 @@ namespace ChatWinForms
 
         private void connectToolStripMenuItem_Click(object sender, EventArgs e)
         {
-              ConnectionForm connectionForm = new ConnectionForm();
-
+              ConnectionForm connectionForm = new ConnectionForm(this);
               connectionForm.ShowDialog();
+        }
+
+        private void OnConnected()
+        {
+            connectToolStripMenuItem.Enabled = false;
+            disconnectToolStripMenuItem.Enabled = true;
+        }
+
+        private void OnDisconnected()
+        {
+            connectToolStripMenuItem.Enabled = true;
+            disconnectToolStripMenuItem.Enabled = false;
         }
     }
 }

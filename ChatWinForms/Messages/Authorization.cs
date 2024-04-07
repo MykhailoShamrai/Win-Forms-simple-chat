@@ -1,4 +1,4 @@
-﻿namespace Messages
+﻿namespace ChatWinForms.Messages
 {
     public class Authorization
     {
