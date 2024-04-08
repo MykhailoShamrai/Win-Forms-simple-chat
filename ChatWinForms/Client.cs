@@ -39,6 +39,7 @@ namespace ChatWinForms
             _userName = null;
             _password = null;
             checkConnectionThread = new Thread(ReadOnThread);
+            checkConnectionThread.IsBackground = true;
         }
         
         public void setClientsParameters(string userName, string password)
@@ -75,12 +76,42 @@ namespace ChatWinForms
         public event Action ConnectionEstablished;
         public void OnConnectionEstablished()
         {
-            ConnectionEstablished.Invoke();
+            ConnectionEstablished?.Invoke();
         }
         public event Action<string>? ErronOnConnectionEstablishing;
         public void OnErrorOnConnectionEstablishing(string msg)
         {
             ErronOnConnectionEstablishing?.Invoke(msg);
+        }
+
+        public event Action SendedAuthorisation;
+        public void OnSendedAuthorisation()
+        {
+            SendedAuthorisation?.Invoke();
+        }
+
+        public event Action<string>? ErrorOnSendingAuthorisation;
+        public void OnErrorOnSendingAuthorisation(string msg)
+        {
+            ErrorOnSendingAuthorisation?.Invoke(msg);
+        }
+
+        public event Action CheckingAuthorisation;
+        public void OnCheckingAuthorisation()
+        {
+            CheckingAuthorisation?.Invoke();
+        }
+
+        public event Action AcceptedAuthorisation;
+        public void OnAcceptedAuthorisation()
+        {
+            AcceptedAuthorisation?.Invoke();
+        }
+
+        public event Action<string>? RejectedAuthorisation;
+        public void OnRejectedAuthorisation(string msg)
+        {
+            RejectedAuthorisation?.Invoke(msg);
         }
 
         //public event Action<string> 
@@ -94,9 +125,6 @@ namespace ChatWinForms
             }
             catch (SocketException ex)
             {
-                _address = null;
-                _port = null;
-                tcpClient = null;
                 OnErrorOnConnectionEstablishing(ex.Message);
                 return -1;
             }
@@ -116,9 +144,9 @@ namespace ChatWinForms
             IPAddress addr;
             try
             {
-                addr = Dns.GetHostAddresses(address).FirstOrDefault()!;
+                addr = Dns.GetHostAddresses(address).LastOrDefault()!;
             }
-            catch (SocketException ex)
+            catch (Exception ex)
             {
                 OnBadHostname(ex.Message);
                 return;
@@ -129,6 +157,7 @@ namespace ChatWinForms
             int res = await TryToConnect(addr, int.Parse(port));
             if (res == -1)
             {
+                EndOfWork();
                 return;
             }
 
@@ -141,28 +170,34 @@ namespace ChatWinForms
 
 
             // Sending authorization
-            // Must be async
-            AskAuthorization();
+            int askres = await AskAuthorization();
+            if (askres == -1)
+            {
+                EndOfWork();
+                return;
+            }
+            // completed 
 
             // Waiting for a response (must be async)
             if (await CheckAuthorization())
             {
                 OnConnected();
-                checkConnectionThread.Start();
-                
-                return;
+                //return;
             }
             else
             {
-                MessageBox.Show("Unable to authorize");
+                OnRejectedAuthorisation("Authorisation was rejected");
                 EndOfWork();
                 return;
             }
 
             // Good connection
+            OnConnected();
+            checkConnectionThread.Start();
+
         }
 
-        private async void SendRequest(string message)
+        private async Task<int> SendRequest(string message)
         {
            if (StreamWriter != null)
             {
@@ -172,13 +207,14 @@ namespace ChatWinForms
                 }
                 catch (SocketException ex)
                 {
-                    OnErrorOnConnectionEstablishing(ex.Message);
-                    return;
+                    OnErrorOnSendingAuthorisation(ex.Message);
+                    return -1;
                 }
+                return 0;
            }
            else
            {
-                return;
+                return -1;
            }
         }
 
@@ -200,15 +236,24 @@ namespace ChatWinForms
             }
         }
 
-        private void AskAuthorization()
+        private async Task<int> AskAuthorization()
         {
             ChatWinForms.Messages.Authorization authorization = new ChatWinForms.Messages.Authorization(UserName!, Password!);
             string mes = JsonSerializer.Serialize(authorization);
-            SendRequest(mes);
+            int res = await SendRequest(mes);
+            {
+                if (res == -1)
+                {
+                    return -1;
+                }
+            }
+            OnSendedAuthorisation();
+            return 0;
         }
 
         private async Task<bool> CheckAuthorization()
         {
+            OnCheckingAuthorisation();
             string? autStr = await HaveAnAnswer();
             if (autStr != null)
             {
@@ -226,6 +271,8 @@ namespace ChatWinForms
         /// </summary>
         private void EndOfWork()
         {
+            _address = null;
+            _port = null;
             if (StreamWriter != null)
             {
                 StreamWriter.Close();
@@ -238,20 +285,8 @@ namespace ChatWinForms
             {
                 tcpClient.Close();
             }
-            //OnConnectionFormDisPose();
+            
         }
-
-        //private void CheckConnection()
-        //{
-        //    while (true)
-        //    {
-        //        if (!tcpClient!.Connected)
-        //        {
-        //            OnDisconnected();
-        //            return;
-        //        }
-        //    }
-        //}
 
         private void ReadOnThread()
         {
