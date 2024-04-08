@@ -97,6 +97,7 @@
             progressConnection.Margin = new Padding(10, 2, 3, 2);
             progressConnection.Name = "progressConnection";
             progressConnection.Size = new Size(264, 21);
+            progressConnection.Step = 25;
             progressConnection.TabIndex = 2;
             // 
             // panel1
@@ -216,6 +217,7 @@
             MinimumSize = new Size(396, 197);
             Name = "ConnectionForm";
             Text = "Connect";
+            FormClosing += ConnectionForm_FormClosing;
             backgroundLayeredTable.ResumeLayout(false);
             bottomTableLayout.ResumeLayout(false);
             panel1.ResumeLayout(false);

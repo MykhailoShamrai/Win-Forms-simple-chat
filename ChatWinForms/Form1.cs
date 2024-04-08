@@ -12,8 +12,8 @@ namespace ChatWinForms
         private Client client;
         public Client Client
         {
-            get { return  client; }
-           // set { client = value; }
+            get { return client; }
+            // set { client = value; }
         }
         private bool first = true;
         public MainChatWindow()
@@ -33,6 +33,8 @@ namespace ChatWinForms
             sendTextBox.Text = "";
             first = !first;
         }
+
+
 
         void addMessange(string messange, DateTime time, string userName)
         {
@@ -88,8 +90,10 @@ namespace ChatWinForms
 
         private void connectToolStripMenuItem_Click(object sender, EventArgs e)
         {
-              ConnectionForm connectionForm = new ConnectionForm(this);
-              connectionForm.ShowDialog();
+            ConnectionForm connectionForm = new ConnectionForm(this);
+            connectionForm.ShowDialog();
+
+            connectionForm.Dispose();
         }
 
         private void OnConnected()
@@ -100,8 +104,16 @@ namespace ChatWinForms
 
         private void OnDisconnected()
         {
+            //CancellationTokenSource tokenSource = new()
+            //tokenSource.Cancel(); // Request cancellation.
+            //client.checkConnectionThread.
             connectToolStripMenuItem.Enabled = true;
             disconnectToolStripMenuItem.Enabled = false;
+        }
+
+        private void disconnectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            client.Disconnect();   
         }
     }
 }

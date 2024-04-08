@@ -13,7 +13,7 @@ namespace ChatWinForms
 {
     public class Client
     {
-        Thread checkConnectionThread;
+        private Thread? checkConnectionThread;
         private StreamReader? StreamReader;
         private StreamWriter? StreamWriter;
 
@@ -38,20 +38,21 @@ namespace ChatWinForms
         {
             _userName = null;
             _password = null;
-            checkConnectionThread = new Thread(ReadOnThread);
-            checkConnectionThread.IsBackground = true;
         }
         
         public void setClientsParameters(string userName, string password)
         {
             this.UserName = userName;
             this.Password = password;
+            checkConnectionThread = new Thread(ReadOnThread);
+            checkConnectionThread.IsBackground = true;
+
         }
         /// <summary>
         /// Event on connecting with server
         /// </summary>
         public event Action? Connected;
-        public void OnConnected()
+        private void OnConnected()
         {
             Connected!.Invoke();
         }
@@ -61,64 +62,94 @@ namespace ChatWinForms
         /// </summary>
         public event Action? Disconnected;
 
-        public void OnDisconnected()
+        private void OnDisconnected()
         {
             Disconnected!.Invoke();
         }
 
+
+        /// <summary>
+        /// Event on bad hostname
+        /// </summary>
         public event Action<string>? BadHostname;
 
-        public void OnBadHostname(string mesg)
+        private void OnBadHostname(string mesg)
         {
             BadHostname!.Invoke(mesg); 
         }
 
-        public event Action ConnectionEstablished;
-        public void OnConnectionEstablished()
+        /// <summary>
+        /// Action while trying to establish connection
+        /// </summary>
+        public event Action ConnectionEstablishing;
+        private void OnConnectionEstablished()
         {
-            ConnectionEstablished?.Invoke();
+            ConnectionEstablishing?.Invoke();
         }
+
+        /// <summary>
+        /// Action for error while trying to establish connection
+        /// </summary>
         public event Action<string>? ErronOnConnectionEstablishing;
-        public void OnErrorOnConnectionEstablishing(string msg)
+        private void OnErrorOnConnectionEstablishing(string msg)
         {
             ErronOnConnectionEstablishing?.Invoke(msg);
         }
 
+        /// <summary>
+        /// Action while sanding an authorisation data
+        /// </summary>
         public event Action SendedAuthorisation;
-        public void OnSendedAuthorisation()
+        private void OnSendedAuthorisation()
         {
             SendedAuthorisation?.Invoke();
         }
 
+        /// <summary>
+        /// Action on error ocured while sending authorisation data
+        /// </summary>
         public event Action<string>? ErrorOnSendingAuthorisation;
-        public void OnErrorOnSendingAuthorisation(string msg)
+        private void OnErrorOnSendingAuthorisation(string msg)
         {
             ErrorOnSendingAuthorisation?.Invoke(msg);
         }
 
+        /// <summary>
+        /// Action on checking an authorisation
+        /// </summary>
         public event Action CheckingAuthorisation;
-        public void OnCheckingAuthorisation()
+        private void OnCheckingAuthorisation()
         {
             CheckingAuthorisation?.Invoke();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public event Action AcceptedAuthorisation;
-        public void OnAcceptedAuthorisation()
+        private void OnAcceptedAuthorisation()
         {
             AcceptedAuthorisation?.Invoke();
         }
 
+        /// <summary>
+        /// Action on rejected authorisation
+        /// </summary>
         public event Action<string>? RejectedAuthorisation;
-        public void OnRejectedAuthorisation(string msg)
+        private void OnRejectedAuthorisation(string msg)
         {
             RejectedAuthorisation?.Invoke(msg);
         }
 
-        //public event Action<string> 
-       
-
+        /// <summary>
+        /// Asynchronous method for trying to establish connection between tcpClient and server.
+        /// </summary>
+        /// <param name="address">IPAddress of address where connection is required</param>
+        /// <param name="port">Port for connection</param>
+        /// <returns>-1 if error occurs, 0 if succeed</returns>
         private async Task<int> TryToConnect(IPAddress address, int port)
         {
+            OnConnectionEstablished();
             try
             {
                 await tcpClient!.ConnectAsync(address, port);
@@ -128,12 +159,10 @@ namespace ChatWinForms
                 OnErrorOnConnectionEstablishing(ex.Message);
                 return -1;
             }
-            OnConnectionEstablished();
             return 0;
         }
         
             
-
         /// <summary>
         /// One solid function for connection and authorizing routine
         /// </summary>
@@ -181,8 +210,7 @@ namespace ChatWinForms
             // Waiting for a response (must be async)
             if (await CheckAuthorization())
             {
-                OnConnected();
-                //return;
+                OnAcceptedAuthorisation();
             }
             else
             {
@@ -193,7 +221,7 @@ namespace ChatWinForms
 
             // Good connection
             OnConnected();
-            checkConnectionThread.Start();
+            checkConnectionThread!.Start();
 
         }
 
@@ -291,15 +319,32 @@ namespace ChatWinForms
         private void ReadOnThread()
         {
             bool disconnected = false;
+            string? str = null;
 
             while (!disconnected)
             {
-                string str = StreamReader!.ReadLine()!;
+                try
+                {
+                    str = StreamReader!.ReadLine()!;
+                }
+                catch (IOException)
+                {
+                    Disconnect();
+                    return;
+                }
                 if (str == null)
                     disconnected = true;   
             }
-            OnDisconnected();
+            Disconnect();
+        }
+
+        /// <summary>
+        /// Disconnecting routine, Closing streams, closing a client; Also OnDisconnected event is invoked
+        /// </summary>
+        public void Disconnect()
+        {
             EndOfWork();
+            OnDisconnected();
         }
     }
 }
