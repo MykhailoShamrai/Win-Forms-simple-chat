@@ -16,6 +16,7 @@ namespace ChatWinForms
         public ConnectionForm()
         {
             InitializeComponent();
+            //parent.Client.
         }
 
         public ConnectionForm(MainChatWindow parent)
@@ -39,8 +40,8 @@ namespace ChatWinForms
             parent.Client.setClientsParameters(userName, key);
             parent.Client.ConnectToServer(addres, port);
             
-            Close();
-            Dispose();
+            //Close();
+            //Dispose();
         }
 
 

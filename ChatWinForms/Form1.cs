@@ -54,7 +54,6 @@ namespace ChatWinForms
             checkScrollBar();
             mainWindowFlowLayout.Controls.Add(msgBox);
             panelForMainLayared.ScrollControlIntoView(msgBox);
-
         }
 
         void checkScrollBar()

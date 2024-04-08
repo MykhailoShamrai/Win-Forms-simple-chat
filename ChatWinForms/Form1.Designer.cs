@@ -153,7 +153,7 @@ namespace ChatWinForms
             Controls.Add(chatLayoutPanel1);
             MainMenuStrip = menuStrip1;
             Margin = new Padding(3, 2, 3, 2);
-            MinimumSize = new Size(282, 368);
+            MinimumSize = new Size(282, 366);
             Name = "MainChatWindow";
             Text = "Group Chat";
             chatLayoutPanel1.ResumeLayout(false);

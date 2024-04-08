@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Policy;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -29,8 +31,8 @@ namespace ChatWinForms
             set { _password = value; }
         }
 
-        private string? address = null;
-        private string? port = null;
+        private string? _address = null;
+        private string? _port = null;
 
         public Client()
         {
@@ -63,37 +65,87 @@ namespace ChatWinForms
             Disconnected!.Invoke();
         }
 
+        public event Action<string>? BadHostname;
+
+        public void OnBadHostname(string mesg)
+        {
+            BadHostname!.Invoke(mesg); 
+        }
+
+        public event Action ConnectionEstablished;
+        public void OnConnectionEstablished()
+        {
+            ConnectionEstablished.Invoke();
+        }
+        public event Action<string>? ErronOnConnectionEstablishing;
+        public void OnErrorOnConnectionEstablishing(string msg)
+        {
+            ErronOnConnectionEstablishing?.Invoke(msg);
+        }
+
+        //public event Action<string> 
+       
+
+        private async Task<int> TryToConnect(IPAddress address, int port)
+        {
+            try
+            {
+                await tcpClient!.ConnectAsync(address, port);
+            }
+            catch (SocketException ex)
+            {
+                _address = null;
+                _port = null;
+                tcpClient = null;
+                OnErrorOnConnectionEstablishing(ex.Message);
+                return -1;
+            }
+            OnConnectionEstablished();
+            return 0;
+        }
+        
+            
 
         /// <summary>
         /// One solid function for connection and authorizing routine
         /// </summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
-        public void ConnectToServer (string address, string port)
-        { 
-            bool isLoopback = (address == "127.0.0.1" || address == "localhost");
-            address = isLoopback ? "127.0.0.1" : address;
-
-            // Trying to connect
+        public async void ConnectToServer (string address, string port)
+        {
+            IPAddress addr;
             try
             {
-                tcpClient = new TcpClient(address, int.Parse(port));
+                addr = Dns.GetHostAddresses(address).FirstOrDefault()!;
             }
-            catch (Exception ex)
+            catch (SocketException ex)
             {
-                address = null;
-                port = null;
-                MessageBox.Show(ex.Message);
+                OnBadHostname(ex.Message);
                 return;
             }
-            this.address = address;
-            this.port = port;
+
+            tcpClient = new TcpClient();
+            // Trying to connect
+            int res = await TryToConnect(addr, int.Parse(port));
+            if (res == -1)
+            {
+                return;
+            }
+
+            _address = address;
+            _port = port;
 
             StreamWriter = new StreamWriter(tcpClient.GetStream());
             StreamWriter.AutoFlush = true;
             StreamReader = new StreamReader(tcpClient.GetStream());
+
+
+            // Sending authorization
+            // Must be async
             AskAuthorization();
-            if (CheckAuthorization())
+
+            // Waiting for a response (must be async)
+            if (await CheckAuthorization())
             {
                 OnConnected();
                 checkConnectionThread.Start();
@@ -106,13 +158,23 @@ namespace ChatWinForms
                 EndOfWork();
                 return;
             }
+
+            // Good connection
         }
 
-        private void SendRequest(string message)
+        private async void SendRequest(string message)
         {
            if (StreamWriter != null)
-           {
-               StreamWriter.WriteLine(message);
+            {
+                try
+                {
+                    await StreamWriter.WriteLineAsync(message);
+                }
+                catch (SocketException ex)
+                {
+                    OnErrorOnConnectionEstablishing(ex.Message);
+                    return;
+                }
            }
            else
            {
@@ -121,12 +183,15 @@ namespace ChatWinForms
         }
 
 
-        private string? HaveAnAnswer()
+        private async Task<string?> HaveAnAnswer()
         {
             if (StreamReader != null)
             {
-
-                string res = StreamReader.ReadLine()!;
+                string? res = await StreamReader.ReadLineAsync()!;
+                if (res == null)
+                {
+                    OnDisconnected();
+                }
                 return res;
             }
             else
@@ -137,14 +202,14 @@ namespace ChatWinForms
 
         private void AskAuthorization()
         {
-            ChatWinForms.Messages.Authorization authorization = new ChatWinForms.Messages.Authorization(UserName, Password);
+            ChatWinForms.Messages.Authorization authorization = new ChatWinForms.Messages.Authorization(UserName!, Password!);
             string mes = JsonSerializer.Serialize(authorization);
             SendRequest(mes);
         }
 
-        private bool CheckAuthorization()
+        private async Task<bool> CheckAuthorization()
         {
-            string? autStr = HaveAnAnswer();
+            string? autStr = await HaveAnAnswer();
             if (autStr != null)
             {
                 ChatWinForms.Messages.Message msg = JsonSerializer.Deserialize<ChatWinForms.Messages.Message>(autStr)!;
