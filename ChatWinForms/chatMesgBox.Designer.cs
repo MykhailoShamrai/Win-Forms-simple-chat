@@ -81,7 +81,7 @@
             // 
             // messageTextBox
             // 
-            messageTextBox.BackColor = Color.FromArgb(192, 64, 0);
+            messageTextBox.BackColor = Color.FromArgb(255, 128, 0);
             messageTextBox.BorderStyle = BorderStyle.None;
             messageTextBox.Dock = DockStyle.Fill;
             messageTextBox.ForeColor = Color.White;
@@ -107,7 +107,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.FromArgb(192, 64, 0);
+            BackColor = Color.FromArgb(255, 128, 0);
             Controls.Add(chatMesgLayoutPanel);
             Margin = new Padding(3, 2, 3, 2);
             MinimumSize = new Size(0, 75);

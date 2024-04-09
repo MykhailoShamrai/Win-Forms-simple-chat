@@ -100,8 +100,8 @@ namespace ChatWinForms
         //https://stackoverflow.com/questions/8361555/why-doesnt-textrenderer-measuretext-work-properly
         void changeSizeAccordingToText()
         {
-            var lineCount = messageTextBox.GetLineFromCharIndex(messageTextBox.TextLength) + 1;
-            this.Height = this.Height - messageTextBox.Height + lineCount * messageTextBox.Font.Height;
+            int lineCount = messageTextBox.GetLineFromCharIndex(messageTextBox.TextLength) + 1;
+            Height = Height - messageTextBox.Height + lineCount * messageTextBox.Font.Height;
             messageTextBox.Height = lineCount * messageTextBox.Font.Height;
         }
 

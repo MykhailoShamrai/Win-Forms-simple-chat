@@ -138,7 +138,7 @@ namespace ChatWinForms
             label.ForeColor = Color.DarkGray;
             label.TextAlign = ContentAlignment.MiddleCenter;
             Invoke(() => mainWindowFlowLayout.Controls.Add(label));
-            panelForMainLayared.ScrollControlIntoView(label);
+            Invoke(() => panelForMainLayared.ScrollControlIntoView(label));
 
         }
 
@@ -154,6 +154,7 @@ namespace ChatWinForms
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            Client.EndOfWork();
             Close();
         }
 

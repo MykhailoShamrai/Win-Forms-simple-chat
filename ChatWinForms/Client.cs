@@ -329,7 +329,6 @@ namespace ChatWinForms
 
         public void ReadOnThread()
         {
-            //bool disconnected = false;
             string? str = null;
 
             while (true)
