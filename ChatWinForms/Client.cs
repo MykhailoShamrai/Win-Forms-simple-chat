@@ -143,6 +143,12 @@ namespace ChatWinForms
             RejectedAuthorisation?.Invoke(msg);
         }
 
+        public event Action<ChatWinForms.Messages.Message> MessageReceived;
+        private void OnMessageReceived(ChatWinForms.Messages.Message msg)
+        {
+            MessageReceived?.Invoke(msg);
+        }
+
         /// <summary>
         /// Asynchronous method for trying to establish connection between tcpClient and server.
         /// </summary>
@@ -226,7 +232,7 @@ namespace ChatWinForms
             checkConnectionThread!.Start();
         }
 
-        private async Task<int> SendRequest(string message)
+        public async Task<int> SendRequest(string message)
         {
            if (StreamWriter != null)
             {
@@ -237,6 +243,10 @@ namespace ChatWinForms
                 catch (SocketException ex)
                 {
                     OnErrorOnSendingAuthorisation(ex.Message);
+                    return -1;
+                }
+                catch (IOException) // On closed stream
+                {
                     return -1;
                 }
                 return 0;
@@ -319,10 +329,10 @@ namespace ChatWinForms
 
         public void ReadOnThread()
         {
-            bool disconnected = false;
+            //bool disconnected = false;
             string? str = null;
 
-            while (!disconnected)
+            while (true)
             {
                 try
                 {
@@ -334,7 +344,10 @@ namespace ChatWinForms
                     return;
                 }
                 if (str == null)
-                    disconnected = true;   
+                {
+                    break;
+                }
+                OnMessageReceived(JsonSerializer.Deserialize<ChatWinForms.Messages.Message>(str!)!);
             }
             Disconnect();
         }
@@ -347,5 +360,6 @@ namespace ChatWinForms
             EndOfWork();
             OnDisconnected();
         }
+
     }
 }

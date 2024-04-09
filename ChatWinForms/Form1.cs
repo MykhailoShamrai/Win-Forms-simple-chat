@@ -2,6 +2,7 @@ using Microsoft.VisualBasic;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
@@ -14,9 +15,14 @@ namespace ChatWinForms
         public Client Client
         {
             get { return client; }
-            // set { client = value; }
         }
-        private bool first = true;
+
+        public static event Action<ChatWinForms.Messages.Message>? MessageSend;
+        private void OnMessageSend(ChatWinForms.Messages.Message mesg)
+        {
+            MessageSend?.Invoke(mesg);
+        }
+
         public MainChatWindow()
         {
             client = new Client();
@@ -24,20 +30,25 @@ namespace ChatWinForms
             checkScrollBar();
             client.Connected += OnConnected;
             client.Disconnected += OnDisconnected;
+            client.MessageReceived += addingMessageOnReceived;
         }
 
 
         private void buttonSend_Click(object sender, EventArgs e)
         {
-            string user = first ? "You" : "Not You";
-            addMessange(sendTextBox.Text, DateTime.Now, user);
+            string user = "You";
+            if (client.IsConnected)
+            {
+                ChatWinForms.Messages.Message message = new ChatWinForms.Messages.Message(client.UserName!, sendTextBox.Text, DateTime.Now);
+                var a = SendMessageToServ(message);
+            }
+            addMessange(sendTextBox.Text, DateTime.Now, user, true);
             sendTextBox.Text = "";
-            first = !first;
         }
 
 
 
-        void addMessange(string messange, DateTime time, string userName)
+        void addMessange(string messange, DateTime time, string userName, bool isYourth)
         {
             chatMesgBox msgBox = new chatMesgBox()
             {
@@ -45,7 +56,7 @@ namespace ChatWinForms
                 Date = time.ToString("HH:mm"),
                 User = userName
             };
-            if (first)
+            if (isYourth)
             {
                 msgBox.Margin = new Padding(50, 0, 5, 5);
             }
@@ -109,6 +120,8 @@ namespace ChatWinForms
             label.ForeColor = Color.DarkGray;
             label.TextAlign = ContentAlignment.MiddleCenter;
             Invoke(() => mainWindowFlowLayout.Controls.Add(label));
+            panelForMainLayared.ScrollControlIntoView(label);
+
         }
 
 
@@ -125,11 +138,33 @@ namespace ChatWinForms
             label.ForeColor = Color.DarkGray;
             label.TextAlign = ContentAlignment.MiddleCenter;
             Invoke(() => mainWindowFlowLayout.Controls.Add(label));
+            panelForMainLayared.ScrollControlIntoView(label);
+
         }
 
         private void disconnectToolStripMenuItem_Click(object sender, EventArgs e)
         {
             client.EndOfWork();
+        }
+
+        private void addingMessageOnReceived(ChatWinForms.Messages.Message message)
+        {
+            Invoke(() => addMessange(message.Text, message.Time, message.Sender, false));
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        private async Task SendMessageToServ(ChatWinForms.Messages.Message msg)
+        {
+            string srt = JsonSerializer.Serialize(msg);
+            int res = await client.SendRequest(srt);
+            if (res == -1)
+            {
+                client.Disconnect();
+            }
         }
     }
 }
