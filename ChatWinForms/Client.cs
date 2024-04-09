@@ -13,6 +13,7 @@ namespace ChatWinForms
 {
     public class Client
     {
+        public bool IsConnected { get; set; }
         private Thread? checkConnectionThread;
         private StreamReader? StreamReader;
         private StreamWriter? StreamWriter;
@@ -36,6 +37,7 @@ namespace ChatWinForms
 
         public Client()
         {
+            IsConnected = false;
             _userName = null;
             _password = null;
         }
@@ -222,7 +224,6 @@ namespace ChatWinForms
             // Good connection
             OnConnected();
             checkConnectionThread!.Start();
-
         }
 
         private async Task<int> SendRequest(string message)
@@ -297,7 +298,7 @@ namespace ChatWinForms
         /// <summary>
         /// Method for clearing streams, tcp clients and all variables;
         /// </summary>
-        private void EndOfWork()
+        public void EndOfWork()
         {
             _address = null;
             _port = null;
@@ -316,7 +317,7 @@ namespace ChatWinForms
             
         }
 
-        private void ReadOnThread()
+        public void ReadOnThread()
         {
             bool disconnected = false;
             string? str = null;

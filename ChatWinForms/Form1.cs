@@ -1,5 +1,6 @@
 using Microsoft.VisualBasic;
 using System;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
@@ -82,7 +83,7 @@ namespace ChatWinForms
 
         private void mainWindowFlowLayout_SizeChanged(object sender, EventArgs e)
         {
-            foreach (chatMesgBox msgBox in mainWindowFlowLayout.Controls)
+            foreach (Control msgBox in mainWindowFlowLayout.Controls)
             {
                 msgBox.Width = mainWindowFlowLayout.ClientSize.Width - msgBox.Margin.Left - msgBox.Margin.Right;
             }
@@ -95,25 +96,40 @@ namespace ChatWinForms
 
             connectionForm.Dispose();
         }
-
+        /// <summary>
+        /// Adding a new label to a Form with Connected text, enabling button Disconnect and disabling button Connect
+        /// </summary>
         private void OnConnected()
         {
+            client.IsConnected = true;
             connectToolStripMenuItem.Enabled = false;
             disconnectToolStripMenuItem.Enabled = true;
+            Label label = new Label();
+            label.Text = "Connected";
+            label.ForeColor = Color.DarkGray;
+            label.TextAlign = ContentAlignment.MiddleCenter;
+            Invoke(() => mainWindowFlowLayout.Controls.Add(label));
         }
 
+
+        /// <summary>
+        /// Adding a new labl to a Form with Disconnected text, enabling button Connect and disabling button Disconnect
+        /// </summary>
         private void OnDisconnected()
         {
-            //CancellationTokenSource tokenSource = new()
-            //tokenSource.Cancel(); // Request cancellation.
-            //client.checkConnectionThread.
+            client.IsConnected = false;
             connectToolStripMenuItem.Enabled = true;
             disconnectToolStripMenuItem.Enabled = false;
+            Label label = new Label();
+            label.Text = "Disconnected";
+            label.ForeColor = Color.DarkGray;
+            label.TextAlign = ContentAlignment.MiddleCenter;
+            Invoke(() => mainWindowFlowLayout.Controls.Add(label));
         }
 
         private void disconnectToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            client.Disconnect();   
+            client.EndOfWork();
         }
     }
 }
