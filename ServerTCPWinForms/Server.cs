@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -14,13 +15,14 @@ namespace ServerTCPWinForms
 {
     internal class Server
     {
-        public bool isWorking = false;
+        public CancellationTokenSource tokenS = new CancellationTokenSource();
         // lock needed
         int id = 1;
         public string Address {  get; set; }
         public int Port { get; set; }
         public string UserName { get; set; }
         public string Password { get; set; }
+        private TcpListener? listener = null;
 
         public Server(string address, int port, string username, string key)
         {
@@ -30,52 +32,72 @@ namespace ServerTCPWinForms
             Password = key;
         }
 
-        public event Action Listening;
+
+        public event Action? Listening;
         private void OnListening()
         {
-            Listening.Invoke();
+            Listening?.Invoke();
         }
 
-        public event Action<int, ClientsInformation> Added;
+        public event Action<int, ClientsInformation>? Added;
         private void OnAdded(int Id, ClientsInformation info)
         {
-            Added.Invoke(Id, info);
+            Added?.Invoke(Id, info);
         }
 
-        public event Action<string> BadHostname;
+        public event Action<string>? BadHostname;
         private void OnBadHostname(string mesg)
         {
-            BadHostname.Invoke(mesg);
+            BadHostname?.Invoke(mesg);
         }
 
-        public event Action<IPAddress, int> WaitingOnSocket;
+        public event Action<IPAddress, int>? WaitingOnSocket;
         private void OnWaitingInSocket(IPAddress addr, int port)
         {
-            WaitingOnSocket.Invoke(addr, port);
+            WaitingOnSocket?.Invoke(addr, port);
         }
 
-        public event Action<string> CheckingAnAuthorisation;
+        public event Action<string>? CheckingAnAuthorisation;
         private void OnCheckingAnAuthorisation(string mesg)
         {
-            CheckingAnAuthorisation.Invoke(mesg);
+            CheckingAnAuthorisation?.Invoke(mesg);
         }
 
-        public event Action<string> BadAuthorisation;
+        public event Action<string>?  BadAuthorisation;
         private void OnBadAuthorisation(string mesg)
         {
-            BadAuthorisation.Invoke(mesg);
+            BadAuthorisation?.Invoke(mesg);
         }
 
-        public event Action<string> UserConnected;
+        public event Action<string>? UserConnected;
         private void OnUserConnected(string mesg)
         {
-            BadAuthorisation.Invoke(mesg);
-        }
-        public event Action<DateTime, string, string> MessageReceived;
+            BadAuthorisation?.Invoke(mesg);
+        }   
+        public event Action<DateTime, string, string>? MessageReceived;
         private void OnMessageReceived(DateTime timestamp, string user, string message)
         {
-            MessageReceived.Invoke(timestamp, user, message);
+            MessageReceived?.Invoke(timestamp, user, message);
         }
+
+        public event Action<int>? DisconnectedFrom;
+        private void OnDisconnectedFrom(int Id)
+        {
+            DisconnectedFrom?.Invoke(Id);
+        }
+
+        public event Action DisconnectAll;
+        private void OnDisconnectAll()
+        {
+            DisconnectAll.Invoke();
+        }
+
+        public event Action<string> SocketErrorWhileListenerStarting;
+        private void OnSocketError(string msg)
+        {
+            SocketErrorWhileListenerStarting.Invoke(msg);
+        }
+
         private IPAddress? TryToParseIP()
         {
             IPAddress? addr;
@@ -104,7 +126,6 @@ namespace ServerTCPWinForms
                 return;
             }
 
-            TcpListener listener;
             try
             {
                 listener = new TcpListener(addr, Port);
@@ -116,16 +137,34 @@ namespace ServerTCPWinForms
             }
             OnListening();
             OnWaitingInSocket(addr, Port);
-            isWorking = true;
-            while (isWorking)
+            while (true)
             {
-                listener.Start();
+                try
+                {
+                    listener.Start();
+                }
+                catch (SocketException ex)
+                {
+                    EndOfWork();
+                    OnSocketError(ex.Message);
+                    return;
+                }
                 // listening
                 Client client = new Client();
-                TcpClient tmpClient = await listener.AcceptTcpClientAsync();
+                var token = tokenS.Token;
+                TcpClient tmpClient;
+                try
+                {
+                    tmpClient = await listener.AcceptTcpClientAsync(token);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
                 client.SetClientsTcpClient(tmpClient);
                 await Task.Factory.StartNew(() => { TryToAddNewClient(client); });
             }
+            EndOfWork();
         }
 
         private async void TryToAddNewClient(Client client)
@@ -134,6 +173,7 @@ namespace ServerTCPWinForms
             string? line = await client.HaveAnAnswer();
             if (line == null)
             {
+                EndOfWork();
                 return;
             }
             OnCheckingAnAuthorisation("New client... Authorising");
@@ -154,6 +194,7 @@ namespace ServerTCPWinForms
                 {
                     // error
                     client.EndOfWork();
+                    EndOfWork();
                     return;
                 }
             }
@@ -165,6 +206,7 @@ namespace ServerTCPWinForms
             OnAdded(id, info);
             // Adding handler for event, when message is recieved
             client.MessageReceivedFrom += SendToAll;
+            client.DisconnectedFromServer += DisconnectUser;
             client.StartCheckingIncoming(id++);
         }
 
@@ -199,6 +241,20 @@ namespace ServerTCPWinForms
                 }
             }
             Database.semaphore.Release();
+        }
+
+        public void DisconnectUser(int Id)
+        {
+            OnDisconnectedFrom(Id);
+        }
+
+        private void EndOfWork()
+        {
+            if (listener != null)
+            {
+                listener.Stop();
+            }
+            OnDisconnectAll();
         }
     }
 }

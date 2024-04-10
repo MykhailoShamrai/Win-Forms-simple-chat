@@ -73,6 +73,11 @@ namespace ChatWinForms
             Disconnected?.Invoke();
         }
 
+        public event Action<int>? DisconnectedFromServer;
+        private void OnDisconnectedFromServer(int Id)
+        {
+            DisconnectedFromServer?.Invoke(Id);
+        }
 
         /// <summary>
         /// Event on bad hostname
@@ -158,6 +163,7 @@ namespace ChatWinForms
         {
             MessageReceivedFrom?.Invoke(msg, Id);
         }
+
 
         /// <summary>
         /// Asynchronous method for trying to establish connection between tcpClient and server.
@@ -338,7 +344,6 @@ namespace ChatWinForms
             {
                 tcpClient.Close();
             }
-            
         }
 
         public void StartCheckingIncoming()
@@ -400,7 +405,7 @@ namespace ChatWinForms
                 }
                 OnMessageReceivedFrom(JsonSerializer.Deserialize<ChatWinForms.Messages.Message>(str!)!, Id);
             }
-            Disconnect();
+            DisconnectFromServer(Id);
         }
 
 
@@ -413,5 +418,10 @@ namespace ChatWinForms
             OnDisconnected();
         }
 
+        public void DisconnectFromServer(int Id)
+        {
+            EndOfWork();
+            OnDisconnectedFromServer(Id);
+        }
     }
 }

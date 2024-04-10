@@ -33,9 +33,6 @@
             DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
             mainBackgroundTableLayout = new TableLayoutPanel();
             dataGridView = new DataGridView();
-            colID = new DataGridViewTextBoxColumn();
-            colName = new DataGridViewTextBoxColumn();
-            colDosconnect = new DataGridViewButtonColumn();
             leftSideTableLayoutPanel = new TableLayoutPanel();
             tableLayoutPanel1 = new TableLayoutPanel();
             sendTextBox = new TextBox();
@@ -58,6 +55,9 @@
             labelPort = new Label();
             labelUsername = new Label();
             labelAddress = new Label();
+            colID = new DataGridViewTextBoxColumn();
+            colName = new DataGridViewTextBoxColumn();
+            colDosconnect = new DataGridViewButtonColumn();
             mainBackgroundTableLayout.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView).BeginInit();
             leftSideTableLayoutPanel.SuspendLayout();
@@ -112,37 +112,6 @@
             dataGridView.RowHeadersWidth = 51;
             dataGridView.Size = new Size(283, 373);
             dataGridView.TabIndex = 2;
-            // 
-            // colID
-            // 
-            colID.DataPropertyName = "ID";
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colID.DefaultCellStyle = dataGridViewCellStyle2;
-            colID.HeaderText = "ID";
-            colID.MinimumWidth = 6;
-            colID.Name = "colID";
-            colID.ReadOnly = true;
-            // 
-            // colName
-            // 
-            colName.DataPropertyName = "Name";
-            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle3.BackColor = Color.White;
-            colName.DefaultCellStyle = dataGridViewCellStyle3;
-            colName.HeaderText = "Name";
-            colName.MinimumWidth = 6;
-            colName.Name = "colName";
-            colName.ReadOnly = true;
-            // 
-            // colDosconnect
-            // 
-            colDosconnect.HeaderText = "Disconnect";
-            colDosconnect.MinimumWidth = 6;
-            colDosconnect.Name = "colDosconnect";
-            colDosconnect.ReadOnly = true;
-            colDosconnect.Resizable = DataGridViewTriState.True;
-            colDosconnect.Text = "Kick";
-            colDosconnect.UseColumnTextForButtonValue = true;
             // 
             // leftSideTableLayoutPanel
             // 
@@ -422,6 +391,37 @@
             labelAddress.Size = new Size(45, 15);
             labelAddress.TabIndex = 0;
             labelAddress.Text = "Adress:";
+            // 
+            // colID
+            // 
+            colID.DataPropertyName = "ID";
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colID.DefaultCellStyle = dataGridViewCellStyle2;
+            colID.HeaderText = "ID";
+            colID.MinimumWidth = 6;
+            colID.Name = "colID";
+            colID.ReadOnly = true;
+            // 
+            // colName
+            // 
+            colName.DataPropertyName = "Name";
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle3.BackColor = Color.White;
+            colName.DefaultCellStyle = dataGridViewCellStyle3;
+            colName.HeaderText = "Name";
+            colName.MinimumWidth = 6;
+            colName.Name = "colName";
+            colName.ReadOnly = true;
+            // 
+            // colDosconnect
+            // 
+            colDosconnect.HeaderText = "Disconnect";
+            colDosconnect.MinimumWidth = 6;
+            colDosconnect.Name = "colDosconnect";
+            colDosconnect.ReadOnly = true;
+            colDosconnect.Resizable = DataGridViewTriState.True;
+            colDosconnect.Text = "Kick";
+            colDosconnect.UseColumnTextForButtonValue = true;
             // 
             // MainServerWindow
             // 
