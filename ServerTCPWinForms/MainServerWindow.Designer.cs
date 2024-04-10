@@ -28,6 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             mainBackgroundTableLayout = new TableLayoutPanel();
             leftSideTableLayoutPanel = new TableLayoutPanel();
             tableLayoutPanel1 = new TableLayoutPanel();
@@ -52,6 +54,9 @@
             labelUsername = new Label();
             labelAddress = new Label();
             dataGridView = new DataGridView();
+            colID = new DataGridViewTextBoxColumn();
+            colName = new DataGridViewTextBoxColumn();
+            colDosconnect = new DataGridViewTextBoxColumn();
             mainBackgroundTableLayout.SuspendLayout();
             leftSideTableLayoutPanel.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
@@ -338,14 +343,54 @@
             // 
             // dataGridView
             // 
+            dataGridView.AllowUserToAddRows = false;
+            dataGridView.AllowUserToDeleteRows = false;
+            dataGridView.AllowUserToResizeColumns = false;
+            dataGridView.AllowUserToResizeRows = false;
+            dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridView.BackgroundColor = Color.White;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.BackColor = Color.LightGray;
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle1.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+            dataGridView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView.Columns.AddRange(new DataGridViewColumn[] { colID, colName, colDosconnect });
             dataGridView.Dock = DockStyle.Fill;
+            dataGridView.EnableHeadersVisualStyles = false;
             dataGridView.Location = new Point(512, 3);
             dataGridView.Name = "dataGridView";
+            dataGridView.ReadOnly = true;
+            dataGridView.RowHeadersVisible = false;
             dataGridView.RowHeadersWidth = 51;
             dataGridView.Size = new Size(324, 497);
             dataGridView.TabIndex = 2;
+            // 
+            // colID
+            // 
+            colID.HeaderText = "ID";
+            colID.MinimumWidth = 6;
+            colID.Name = "colID";
+            colID.ReadOnly = true;
+            // 
+            // colName
+            // 
+            dataGridViewCellStyle2.BackColor = Color.White;
+            colName.DefaultCellStyle = dataGridViewCellStyle2;
+            colName.HeaderText = "Name";
+            colName.MinimumWidth = 6;
+            colName.Name = "colName";
+            colName.ReadOnly = true;
+            // 
+            // colDosconnect
+            // 
+            colDosconnect.HeaderText = "Disconnect";
+            colDosconnect.MinimumWidth = 6;
+            colDosconnect.Name = "colDosconnect";
+            colDosconnect.ReadOnly = true;
             // 
             // MainServerWindow
             // 
@@ -397,5 +442,8 @@
         private TextBox textBoxUsername;
         private TextBox textBoxKey;
         private CheckBox checkBoxKey;
+        private DataGridViewTextBoxColumn colID;
+        private DataGridViewTextBoxColumn colName;
+        private DataGridViewTextBoxColumn colDosconnect;
     }
 }
