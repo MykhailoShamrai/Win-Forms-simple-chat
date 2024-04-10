@@ -39,7 +39,7 @@ namespace ChatWinForms
             string key = textBoxKey.Text;
 
             // Setting client properties.
-            parent.Client.setClientsParameters(userName, key);
+            parent.Client.SetClientsParameters(userName, key);
             // Trying to connect to a server from parent's client
             parent.Client.ConnectToServer(addres, port);
         }

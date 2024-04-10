@@ -28,11 +28,14 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
             mainBackgroundTableLayout = new TableLayoutPanel();
             dataGridView = new DataGridView();
+            colID = new DataGridViewTextBoxColumn();
+            colName = new DataGridViewTextBoxColumn();
+            colDosconnect = new DataGridViewButtonColumn();
             leftSideTableLayoutPanel = new TableLayoutPanel();
             tableLayoutPanel1 = new TableLayoutPanel();
             sendTextBox = new TextBox();
@@ -55,9 +58,6 @@
             labelPort = new Label();
             labelUsername = new Label();
             labelAddress = new Label();
-            colID = new DataGridViewTextBoxColumn();
-            colName = new DataGridViewTextBoxColumn();
-            colDosconnect = new DataGridViewButtonColumn();
             mainBackgroundTableLayout.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView).BeginInit();
             leftSideTableLayoutPanel.SuspendLayout();
@@ -92,14 +92,14 @@
             dataGridView.AllowUserToResizeRows = false;
             dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridView.BackgroundColor = Color.White;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.BackColor = Color.LightGray;
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle1.ForeColor = SystemColors.WindowText;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
-            dataGridView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle4.BackColor = Color.LightGray;
+            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle4.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle4.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.True;
+            dataGridView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
             dataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView.Columns.AddRange(new DataGridViewColumn[] { colID, colName, colDosconnect });
             dataGridView.Dock = DockStyle.Fill;
@@ -112,6 +112,37 @@
             dataGridView.RowHeadersWidth = 51;
             dataGridView.Size = new Size(283, 373);
             dataGridView.TabIndex = 2;
+            // 
+            // colID
+            // 
+            colID.DataPropertyName = "ID";
+            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colID.DefaultCellStyle = dataGridViewCellStyle5;
+            colID.HeaderText = "ID";
+            colID.MinimumWidth = 6;
+            colID.Name = "colID";
+            colID.ReadOnly = true;
+            // 
+            // colName
+            // 
+            colName.DataPropertyName = "Name";
+            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle6.BackColor = Color.White;
+            colName.DefaultCellStyle = dataGridViewCellStyle6;
+            colName.HeaderText = "Name";
+            colName.MinimumWidth = 6;
+            colName.Name = "colName";
+            colName.ReadOnly = true;
+            // 
+            // colDosconnect
+            // 
+            colDosconnect.HeaderText = "Disconnect";
+            colDosconnect.MinimumWidth = 6;
+            colDosconnect.Name = "colDosconnect";
+            colDosconnect.ReadOnly = true;
+            colDosconnect.Resizable = DataGridViewTriState.True;
+            colDosconnect.Text = "Kick";
+            colDosconnect.UseColumnTextForButtonValue = true;
             // 
             // leftSideTableLayoutPanel
             // 
@@ -268,8 +299,9 @@
             buttonStop.Name = "buttonStop";
             buttonStop.Size = new Size(68, 22);
             buttonStop.TabIndex = 0;
-            buttonStop.Text = "Stop";
+            buttonStop.Text = "Start";
             buttonStop.UseVisualStyleBackColor = true;
+            buttonStop.Click += buttonStop_Click;
             // 
             // panelForInput
             // 
@@ -300,6 +332,7 @@
             checkBoxKey.TabIndex = 1;
             checkBoxKey.Text = "ShowKey";
             checkBoxKey.UseVisualStyleBackColor = true;
+            checkBoxKey.CheckedChanged += checkBoxKey_CheckedChanged;
             // 
             // textBoxKey
             // 
@@ -388,37 +421,6 @@
             labelAddress.Size = new Size(45, 15);
             labelAddress.TabIndex = 0;
             labelAddress.Text = "Adress:";
-            // 
-            // colID
-            // 
-            colID.DataPropertyName = "ID";
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colID.DefaultCellStyle = dataGridViewCellStyle2;
-            colID.HeaderText = "ID";
-            colID.MinimumWidth = 6;
-            colID.Name = "colID";
-            colID.ReadOnly = true;
-            // 
-            // colName
-            // 
-            colName.DataPropertyName = "Name";
-            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle3.BackColor = Color.White;
-            colName.DefaultCellStyle = dataGridViewCellStyle3;
-            colName.HeaderText = "Name";
-            colName.MinimumWidth = 6;
-            colName.Name = "colName";
-            colName.ReadOnly = true;
-            // 
-            // colDosconnect
-            // 
-            colDosconnect.HeaderText = "Disconnect";
-            colDosconnect.MinimumWidth = 6;
-            colDosconnect.Name = "colDosconnect";
-            colDosconnect.ReadOnly = true;
-            colDosconnect.Resizable = DataGridViewTriState.True;
-            colDosconnect.Text = "Kick";
-            colDosconnect.UseColumnTextForButtonValue = true;
             // 
             // MainServerWindow
             // 

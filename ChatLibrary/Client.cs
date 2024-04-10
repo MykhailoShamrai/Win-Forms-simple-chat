@@ -18,7 +18,7 @@ namespace ChatWinForms
         private StreamReader? StreamReader;
         private StreamWriter? StreamWriter;
 
-        private TcpClient? tcpClient;
+        public TcpClient? tcpClient { get; set; }
         private string? _userName;
         public string? UserName
         {
@@ -42,13 +42,18 @@ namespace ChatWinForms
             _password = null;
         }
         
-        public void setClientsParameters(string userName, string password)
+        public void SetClientsTcpClient(TcpClient client)
         {
-            this.UserName = userName;
-            this.Password = password;
+            tcpClient = client;
+            StreamReader = new StreamReader(client.GetStream());
+            StreamWriter = new StreamWriter(client.GetStream());
+        }
+        public void SetClientsParameters(string userName, string password)
+        {
+            UserName = userName;
+            Password = password;
             checkConnectionThread = new Thread(ReadOnThread);
             checkConnectionThread.IsBackground = true;
-
         }
         /// <summary>
         /// Event on connecting with server
@@ -181,7 +186,7 @@ namespace ChatWinForms
             IPAddress addr;
             try
             {
-                addr = Dns.GetHostAddresses(address).LastOrDefault()!;
+                addr = Dns.GetHostAddresses(address, AddressFamily.InterNetwork).FirstOrDefault()!;
             }
             catch (Exception ex)
             {
@@ -258,7 +263,11 @@ namespace ChatWinForms
         }
 
 
-        private async Task<string?> HaveAnAnswer()
+        /// <summary>
+        /// Function for waiting until message comes
+        /// </summary>
+        /// <returns>null if disconnected.</returns>
+        public async Task<string?> HaveAnAnswer()
         {
             if (StreamReader != null)
             {
