@@ -12,7 +12,6 @@ namespace ServerTCPWinForms
 
         private Server? server = null;
         bool Started = false;
-        //public BindingList<ClientsInformation> list;
         public MainServerWindow()
         {
             InitializeComponent();
