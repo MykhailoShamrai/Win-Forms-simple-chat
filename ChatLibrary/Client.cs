@@ -47,13 +47,12 @@ namespace ChatWinForms
             tcpClient = client;
             StreamReader = new StreamReader(client.GetStream());
             StreamWriter = new StreamWriter(client.GetStream());
+            StreamWriter.AutoFlush = true;
         }
         public void SetClientsParameters(string userName, string password)
         {
             UserName = userName;
             Password = password;
-            checkConnectionThread = new Thread(ReadOnThread);
-            checkConnectionThread.IsBackground = true;
         }
         /// <summary>
         /// Event on connecting with server
@@ -61,7 +60,7 @@ namespace ChatWinForms
         public event Action? Connected;
         private void OnConnected()
         {
-            Connected!.Invoke();
+            Connected?.Invoke();
         }
 
         /// <summary>
@@ -71,7 +70,7 @@ namespace ChatWinForms
 
         private void OnDisconnected()
         {
-            Disconnected!.Invoke();
+            Disconnected?.Invoke();
         }
 
 
@@ -82,7 +81,7 @@ namespace ChatWinForms
 
         private void OnBadHostname(string mesg)
         {
-            BadHostname!.Invoke(mesg); 
+            BadHostname?.Invoke(mesg); 
         }
 
         /// <summary>
@@ -152,6 +151,12 @@ namespace ChatWinForms
         private void OnMessageReceived(ChatWinForms.Messages.Message msg)
         {
             MessageReceived?.Invoke(msg);
+        }
+
+        public event Action<ChatWinForms.Messages.Message, int> MessageReceivedFrom;
+        private void OnMessageReceivedFrom(ChatWinForms.Messages.Message msg, int Id)
+        {
+            MessageReceivedFrom?.Invoke(msg, Id);
         }
 
         /// <summary>
@@ -234,7 +239,7 @@ namespace ChatWinForms
 
             // Good connection
             OnConnected();
-            checkConnectionThread!.Start();
+            StartCheckingIncoming();
         }
 
         public async Task<int> SendRequest(string message)
@@ -336,7 +341,21 @@ namespace ChatWinForms
             
         }
 
-        public void ReadOnThread()
+        public void StartCheckingIncoming()
+        {
+            checkConnectionThread = new Thread(ReadOnThreadClient);
+            checkConnectionThread.IsBackground = true;
+            checkConnectionThread.Start();
+        }
+
+        public void StartCheckingIncoming(int Id)
+        {
+            checkConnectionThread = new Thread(() => ReadOnThreadClientInServer(Id));
+            checkConnectionThread.IsBackground = true;
+            checkConnectionThread.Start();
+        }
+
+         void ReadOnThreadClient()
         {
             string? str = null;
 
@@ -359,6 +378,31 @@ namespace ChatWinForms
             }
             Disconnect();
         }
+
+        void ReadOnThreadClientInServer(int Id)
+        {
+            string? str = null;
+
+            while (true)
+            {
+                try
+                {
+                    str = StreamReader!.ReadLine()!;
+                }
+                catch (IOException)
+                {
+                    Disconnect();
+                    return;
+                }
+                if (str == null)
+                {
+                    break;
+                }
+                OnMessageReceivedFrom(JsonSerializer.Deserialize<ChatWinForms.Messages.Message>(str!)!, Id);
+            }
+            Disconnect();
+        }
+
 
         /// <summary>
         /// Disconnecting routine, Closing streams, closing a client; Also OnDisconnected event is invoked

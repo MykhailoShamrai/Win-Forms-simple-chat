@@ -33,6 +33,7 @@ namespace ChatWinForms
         private void buttonConnect_Click(object sender, EventArgs e)
         {
             buttonConnect.Enabled = false;
+            checkBoxVisibleKey.Enabled = false;
             string addres = textBoxAddress.Text;
             string port = textBoxPort.Text;
             string userName = textBoxUser.Text;
@@ -59,6 +60,7 @@ namespace ChatWinForms
             string tittle = "Error";
             MessageBox.Show(message, tittle, MessageBoxButtons.OK, MessageBoxIcon.Error);
             buttonConnect.Enabled = true;
+            checkBoxVisibleKey.Enabled = true;
         }
 
         private void AddProgress()

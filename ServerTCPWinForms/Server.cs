@@ -1,6 +1,7 @@
 ﻿using ChatWinForms;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -12,6 +13,7 @@ namespace ServerTCPWinForms
 {
     internal class Server
     {
+        int id = 1;
         public string Address {  get; set; }
         public int Port { get; set; }
         public string UserName { get; set; }
@@ -31,6 +33,24 @@ namespace ServerTCPWinForms
             Listening.Invoke();
         }
 
+        public event Action<int, ClientsInformation> Added;
+        private void OnAdded(int Id, ClientsInformation info)
+        {
+            Added.Invoke(Id, info);
+        }
+
+        public event Action<string> BadHostname;
+        private void OnBadHostname(string mesg)
+        {
+            BadHostname.Invoke(mesg);
+        }
+
+        public event Action<IPAddress, int> WaitingOnSocket;
+        private void OnWaitingInSocket(IPAddress addr, int port)
+        {
+            WaitingOnSocket.Invoke(addr, port);
+        }
+
         private IPAddress? TryToParseIP()
         {
             IPAddress? addr;
@@ -38,8 +58,14 @@ namespace ServerTCPWinForms
             {
                 addr = Dns.GetHostAddresses(Address, AddressFamily.InterNetwork).FirstOrDefault()!;
             }
-            catch (Exception ex)
+            catch (SocketException ex)
             {
+                OnBadHostname(ex.Message);
+                return null;
+            }
+            catch (ArgumentException ex)
+            {
+                OnBadHostname("Error resolving address: " + ex.Message);
                 return null;
             }
             return addr;
@@ -50,17 +76,18 @@ namespace ServerTCPWinForms
             IPAddress? addr;
             if ((addr = TryToParseIP()) == null)
             {
-                /// must be error 
                 return;
             }
-            TcpListener listener = new TcpListener(addr, Port);
 
+            ///////
+            TcpListener listener = new TcpListener(addr, Port);
+            OnListening();
+            OnWaitingInSocket(addr, Port);
             while (true)
             {
                 listener.Start();
                 // listening
                 Client client = new Client();
-                OnListening();
                 TcpClient tmpClient = await listener.AcceptTcpClientAsync();
                 client.SetClientsTcpClient(tmpClient);
 
@@ -86,12 +113,50 @@ namespace ServerTCPWinForms
                 // error on closed
                 return;
             }
-            ChatWinForms.Messages.Authorization auth = JsonSerializer.Deserialize<ChatWinForms.Messages.Authorization>(line)!;
             // checking
-
             // ansering
+            ChatWinForms.Messages.Authorization auth = JsonSerializer.Deserialize<ChatWinForms.Messages.Authorization>(line)!;
+            if (auth.Key != Password)
+            {
+                ///
+                ChatWinForms.Messages.Message msg = new ChatWinForms.Messages.Message(UserName, ChatWinForms.Messages.Message.Unauthorized, DateTime.Now);
+                int i = await client.SendRequest(JsonSerializer.Serialize(msg));
+                client.EndOfWork();
+                return;
+            }
+            else 
+            {
+                /// sending good authorisation 
+                ChatWinForms.Messages.Message msg = new ChatWinForms.Messages.Message(UserName, ChatWinForms.Messages.Message.Authorized, DateTime.Now);
+                int i = await client.SendRequest(JsonSerializer.Serialize(msg));
+                if (i == -1)
+                {
+                    // error
+                    client.EndOfWork();
+                    return;
+                }
+            }
 
+            /// list must be locked, it's multuthread
+            client.SetClientsParameters(auth.Sender, Password);
+            ClientsInformation info = new ClientsInformation(id, auth.Sender, client);
+
+            OnAdded(id, info);
+            client.MessageReceivedFrom += SendToAll;
+            client.StartCheckingIncoming(id++);
             // adding
+        }
+
+        private async void SendToAll(ChatWinForms.Messages.Message message, int Id)
+        {
+            foreach (var info in Database.list)
+            {
+                if (info.ID != Id)
+                {
+                    Client tmp = info.GetClient();
+                    await info.GetClient().SendRequest(JsonSerializer.Serialize(message));
+                }
+            }
         }
     }
 }
