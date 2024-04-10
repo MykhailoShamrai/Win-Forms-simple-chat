@@ -16,7 +16,8 @@ namespace ServerTCPWinForms
     internal class Server
     {
         public CancellationTokenSource tokenS = new CancellationTokenSource();
-        // lock needed
+        public static readonly object idLock = new object();
+        // id for newly added clients. May be shared between threads, than must be with lock statement
         int id = 1;
         public string Address {  get; set; }
         public int Port { get; set; }
@@ -199,15 +200,18 @@ namespace ServerTCPWinForms
                 }
             }
             OnUserConnected($"{auth.Sender} has connected");
-            /// list must be locked, it's multuthread
             client.SetClientsParameters(auth.Sender, Password);
-            ClientsInformation info = new ClientsInformation(id, auth.Sender, client);
-            // adding
-            OnAdded(id, info);
-            // Adding handler for event, when message is recieved
-            client.MessageReceivedFrom += SendToAll;
-            client.DisconnectedFromServer += DisconnectUser;
-            client.StartCheckingIncoming(id++);
+            lock (idLock)
+            {
+                ClientsInformation info = new ClientsInformation(id, auth.Sender, client);
+                // adding
+                OnAdded(id, info);
+                // Adding handler for event, when message is recieved
+                client.MessageReceivedFrom += SendToAll;
+                client.DisconnectedFromServer += DisconnectUser;
+                client.StartCheckingIncoming(id);
+                id = (id + 1) % int.MaxValue;
+            }
         }
 
         public async void SendToAll(ChatWinForms.Messages.Message message, int Id)

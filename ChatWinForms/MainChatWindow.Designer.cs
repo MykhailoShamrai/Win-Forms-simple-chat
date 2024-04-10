@@ -175,6 +175,7 @@ namespace ChatWinForms
             MinimumSize = new Size(282, 366);
             Name = "MainChatWindow";
             Text = "Group Chat";
+            SizeChanged += MainChatWindow_SizeChanged;
             chatLayoutPanel1.ResumeLayout(false);
             chatLayoutPanel1.PerformLayout();
             panelForMainLayared.ResumeLayout(false);

@@ -167,5 +167,10 @@ namespace ChatWinForms
                 client.Disconnect();
             }
         }
+
+        private void MainChatWindow_SizeChanged(object sender, EventArgs e)
+        {
+            checkScrollBar();
+        }
     }
 }

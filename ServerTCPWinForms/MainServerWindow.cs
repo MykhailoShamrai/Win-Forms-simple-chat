@@ -17,6 +17,7 @@ namespace ServerTCPWinForms
             InitializeComponent();
             dataGridView.DataSource = Database.list;
             UserExiting += WriteOnDisconnected;
+            dataGridView.CellClick += new DataGridViewCellEventHandler(dataGridView_CellClick);
         }
 
         public event Action<string> UserExiting;
@@ -37,7 +38,8 @@ namespace ServerTCPWinForms
                 buttonStop.Text = "Stop";
                 textBoxAddress.Enabled = false;
                 textBoxPort.Enabled = false;
-                
+                textBoxUsername.Enabled = false;
+
                 Started = true;
                 server = new Server(textBoxAddress.Text, int.Parse(textBoxPort.Text), textBoxUsername.Text, textBoxKey.Text);
 
@@ -46,7 +48,7 @@ namespace ServerTCPWinForms
             }
             else
             {
-                MakeConnectingPossoble();
+                MakeConnectingPossible();
             }
         }
 
@@ -115,7 +117,9 @@ namespace ServerTCPWinForms
             {
                 if (Database.list[i].ID == Id)
                 {
-                    OnUserExiting(Database.list[i].Name);
+                    var inf = Database.list[i];
+                    OnUserExiting(inf.Name);
+                    inf.GetClient().EndOfWork();
                     Invoke(() => Database.list.RemoveAt(i));
                     break;
                 }
@@ -127,7 +131,7 @@ namespace ServerTCPWinForms
         {
             await Database.semaphore.WaitAsync();
             while (Database.list.Count > 0)
-            {   
+            {
                 var inf = Database.list[0];
                 string usr = inf.Name;
                 OnUserExiting(usr);
@@ -143,14 +147,15 @@ namespace ServerTCPWinForms
         /// string is unused beacaue of event handling
         /// </summary>
         /// <param name="str">Unused parametr</param>
-        private void MakeConnectingPossoble(string str = "")
+        private void MakeConnectingPossible(string str = "")
         {
             textBoxAddress.Enabled = true;
             textBoxPort.Enabled = true;
+            textBoxUsername.Enabled = true;
             buttonStop.Text = "Start";
             Started = false;
-            server.tokenS.Cancel();
-            WriteToLog(DateTime.Now, "", "Server has stopped");
+            WriteToLog(DateTime.Now, "", $"{server!.UserName} has stopped");
+            server!.tokenS.Cancel();
         }
 
         private void AddHandlersToServer()
@@ -166,7 +171,30 @@ namespace ServerTCPWinForms
             server.MessageReceived += WriteToLog;
             server.DisconnectAll += DisconnectAll;
             server.SocketErrorWhileListenerStarting += ErrorAndSimpleMEssagesWriting;
-            server.SocketErrorWhileListenerStarting += MakeConnectingPossoble; // After error ocurs we want to make it possible again to connect
+            server.SocketErrorWhileListenerStarting += MakeConnectingPossible; // After error ocurs we want to make it possible again to connect
+        }
+
+        private void buttonDisconnectAll_Click(object sender, EventArgs e)
+        {
+            DisconnectAll();
+        }
+
+        private void buttonClear_Click(object sender, EventArgs e)
+        {
+            richTextBoxLog.Text = "";
+        }
+
+        private void dataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            // Ignore clicks that are not on button cells. 
+            var a = e;
+            if (e.RowIndex < 0 || e.ColumnIndex !=
+                dataGridView.Columns["colDosconnect"].Index) return;
+
+            // Retrieve the task ID.
+            int b = (int)dataGridView[dataGridView.Columns["colID"].Index, e.RowIndex].Value;
+
+            DisconnectUser(b);
         }
     }
 }

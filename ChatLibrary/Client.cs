@@ -194,6 +194,7 @@ namespace ChatWinForms
         /// <param name="port"></param>
         public async void ConnectToServer (string address, string port)
         {
+            // Checking address
             IPAddress addr;
             try
             {
