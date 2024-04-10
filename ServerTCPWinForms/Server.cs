@@ -1,4 +1,5 @@
 ﻿using ChatWinForms;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,6 +14,8 @@ namespace ServerTCPWinForms
 {
     internal class Server
     {
+        public bool isWorking = false;
+        // lock needed
         int id = 1;
         public string Address {  get; set; }
         public int Port { get; set; }
@@ -51,6 +54,28 @@ namespace ServerTCPWinForms
             WaitingOnSocket.Invoke(addr, port);
         }
 
+        public event Action<string> CheckingAnAuthorisation;
+        private void OnCheckingAnAuthorisation(string mesg)
+        {
+            CheckingAnAuthorisation.Invoke(mesg);
+        }
+
+        public event Action<string> BadAuthorisation;
+        private void OnBadAuthorisation(string mesg)
+        {
+            BadAuthorisation.Invoke(mesg);
+        }
+
+        public event Action<string> UserConnected;
+        private void OnUserConnected(string mesg)
+        {
+            BadAuthorisation.Invoke(mesg);
+        }
+        public event Action<DateTime, string, string> MessageReceived;
+        private void OnMessageReceived(DateTime timestamp, string user, string message)
+        {
+            MessageReceived.Invoke(timestamp, user, message);
+        }
         private IPAddress? TryToParseIP()
         {
             IPAddress? addr;
@@ -79,28 +104,27 @@ namespace ServerTCPWinForms
                 return;
             }
 
-            ///////
-            TcpListener listener = new TcpListener(addr, Port);
+            TcpListener listener;
+            try
+            {
+                listener = new TcpListener(addr, Port);
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                OnBadHostname(ex.Message);
+                return;
+            }
             OnListening();
             OnWaitingInSocket(addr, Port);
-            while (true)
+            isWorking = true;
+            while (isWorking)
             {
                 listener.Start();
                 // listening
                 Client client = new Client();
                 TcpClient tmpClient = await listener.AcceptTcpClientAsync();
                 client.SetClientsTcpClient(tmpClient);
-
-        ;
                 await Task.Factory.StartNew(() => { TryToAddNewClient(client); });
-                // authorising
-
-
-
-                // authorisation checked
-
-
-                // adding to list
             }
         }
 
@@ -110,23 +134,20 @@ namespace ServerTCPWinForms
             string? line = await client.HaveAnAnswer();
             if (line == null)
             {
-                // error on closed
                 return;
             }
-            // checking
-            // ansering
+            OnCheckingAnAuthorisation("New client... Authorising");
             ChatWinForms.Messages.Authorization auth = JsonSerializer.Deserialize<ChatWinForms.Messages.Authorization>(line)!;
             if (auth.Key != Password)
             {
-                ///
+                OnBadAuthorisation("Client failed to authorize");
                 ChatWinForms.Messages.Message msg = new ChatWinForms.Messages.Message(UserName, ChatWinForms.Messages.Message.Unauthorized, DateTime.Now);
-                int i = await client.SendRequest(JsonSerializer.Serialize(msg));
+                await client.SendRequest(JsonSerializer.Serialize(msg));
                 client.EndOfWork();
                 return;
             }
             else 
             {
-                /// sending good authorisation 
                 ChatWinForms.Messages.Message msg = new ChatWinForms.Messages.Message(UserName, ChatWinForms.Messages.Message.Authorized, DateTime.Now);
                 int i = await client.SendRequest(JsonSerializer.Serialize(msg));
                 if (i == -1)
@@ -136,27 +157,48 @@ namespace ServerTCPWinForms
                     return;
                 }
             }
-
+            OnUserConnected($"{auth.Sender} has connected");
             /// list must be locked, it's multuthread
             client.SetClientsParameters(auth.Sender, Password);
             ClientsInformation info = new ClientsInformation(id, auth.Sender, client);
-
+            // adding
             OnAdded(id, info);
+            // Adding handler for event, when message is recieved
             client.MessageReceivedFrom += SendToAll;
             client.StartCheckingIncoming(id++);
-            // adding
         }
 
-        private async void SendToAll(ChatWinForms.Messages.Message message, int Id)
+        public async void SendToAll(ChatWinForms.Messages.Message message, int Id)
         {
+            await Database.semaphore.WaitAsync();
+            string user = message.Sender;
+            if (Id != -1)
+            {
+                foreach (var info in Database.list)
+                {
+                    if (info.ID == Id)
+                    {
+                        user = info.Name;
+                    }
+                }
+            }
+            else
+            {
+                user = UserName;
+            }
+            ChatWinForms.Messages.Message usrmsg = new ChatWinForms.Messages.Message(user, message.Text, message.Time);
+            OnMessageReceived(usrmsg.Time, user, usrmsg.Text);
+            string toSend = JsonSerializer.Serialize(usrmsg);
+
             foreach (var info in Database.list)
             {
                 if (info.ID != Id)
                 {
                     Client tmp = info.GetClient();
-                    await info.GetClient().SendRequest(JsonSerializer.Serialize(message));
+                    await info.GetClient().SendRequest(toSend);
                 }
             }
+            Database.semaphore.Release();
         }
     }
 }

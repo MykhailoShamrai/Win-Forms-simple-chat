@@ -26,11 +26,15 @@ namespace ServerTCPWinForms
         private void buttonStop_Click(object sender, EventArgs e)
         {
             server = new Server(textBoxAddress.Text, int.Parse(textBoxPort.Text), textBoxUsername.Text, textBoxKey.Text);
-            
+
             server.Listening += WritingLogOnListening;
             server.Added += AddToList;
-            server.BadHostname += ErrorWriting;
+            server.BadHostname += ErrorAndSimpleMEssagesWriting;
             server.WaitingOnSocket += StartListeningLog;
+            server.UserConnected += ErrorAndSimpleMEssagesWriting;
+            server.BadAuthorisation += ErrorAndSimpleMEssagesWriting;
+            server.CheckingAnAuthorisation += ErrorAndSimpleMEssagesWriting;
+            server.MessageReceived += WriteToLog;
             server.StartListening();
         }
 
@@ -41,18 +45,22 @@ namespace ServerTCPWinForms
 
         private void WriteToLog(DateTime time, string user, string message)
         {
-            string mesg = $"{time.ToString("HH:mm")} | {user} {message}";
-            StringBuilder sb = new StringBuilder(richTextBoxLog.Text);
+            user = (user == "") ? "" : user + ": ";
+            string mesg = $"{time.ToString("HH:mm")} | {user}{message}";
+            StringBuilder sb = new StringBuilder();
+            Invoke(() => { sb.Append(richTextBoxLog.Text); });
             sb.AppendLine(mesg);
-            richTextBoxLog.Text = sb.ToString();
+            Invoke(() => { richTextBoxLog.Text = sb.ToString(); });
         }
 
         private void AddToList(int Id, ClientsInformation info)
         {
+            Database.semaphore.WaitAsync();
             Invoke(() => Database.list.Add(info));
+            Database.semaphore.Release();
         }
 
-        private void ErrorWriting(string mesg)
+        private void ErrorAndSimpleMEssagesWriting(string mesg)
         {
             WriteToLog(DateTime.Now, "", mesg);
         }
@@ -60,6 +68,21 @@ namespace ServerTCPWinForms
         private void StartListeningLog(IPAddress addr, int port)
         {
             WriteToLog(DateTime.Now, "", $"IP: {addr}, Port: {port}");
+        }
+
+        private void sendButton_Click(object sender, EventArgs e)
+        {
+            string text = sendTextBox.Text;
+            sendTextBox.Text = "";
+            ChatWinForms.Messages.Message msg = new ChatWinForms.Messages.Message(textBoxUsername.Text, text, DateTime.Now);
+            if (server != null)
+            {
+                server.SendToAll(msg, -1);
+            }
+            else
+            {
+                WriteToLog(msg.Time, msg.Sender, msg.Text);
+            }
         }
     }
 }

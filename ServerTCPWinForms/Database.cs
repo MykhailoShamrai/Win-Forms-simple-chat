@@ -9,6 +9,7 @@ namespace ServerTCPWinForms
 {
     internal class Database
     {
+        public static SemaphoreSlim semaphore = new SemaphoreSlim(1);
         static public BindingList<ClientsInformation> list = new BindingList<ClientsInformation>();
     }
 }
