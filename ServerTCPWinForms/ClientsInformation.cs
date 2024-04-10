@@ -6,10 +6,15 @@ using System.Threading.Tasks;
 
 namespace ServerTCPWinForms
 {
-    internal class ClientsInformation
+    public class ClientsInformation
     {
         public int ID {  get; set; }
         public string Name { get; set; }
-
+        
+        public ClientsInformation(int id, string name)
+        {
+            ID = id;
+            Name = name;
+        }
     }
 }
