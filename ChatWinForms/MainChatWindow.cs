@@ -70,7 +70,7 @@ namespace ChatWinForms
             panelForMainLayared.ScrollControlIntoView(msgBox);
         }
 
-        void checkScrollBar()
+        private void checkScrollBar()
         {
             if (panelForMainLayared.Height > mainWindowFlowLayout.Height)
             {
