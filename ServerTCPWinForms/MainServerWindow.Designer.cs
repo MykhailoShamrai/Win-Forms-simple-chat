@@ -187,6 +187,7 @@
             sendTextBox.Name = "sendTextBox";
             sendTextBox.Size = new Size(339, 23);
             sendTextBox.TabIndex = 0;
+            sendTextBox.KeyDown += sendTextBox_KeyDown;
             // 
             // sendButton
             // 

@@ -27,7 +27,7 @@ namespace ChatWinForms
         {
             client = new Client();
             InitializeComponent();
-            checkScrollBar();
+            CheckScrollBar();
             client.Connected += OnConnected;
             client.Disconnected += OnDisconnected;
             client.MessageReceived += addingMessageOnReceived;
@@ -65,12 +65,12 @@ namespace ChatWinForms
                 msgBox.Margin = new Padding(5, 0, 50, 5);
             }
             msgBox.Width = mainWindowFlowLayout.Width - msgBox.Margin.Left - msgBox.Margin.Right;
-            checkScrollBar();
+            CheckScrollBar();
             mainWindowFlowLayout.Controls.Add(msgBox);
             panelForMainLayared.ScrollControlIntoView(msgBox);
         }
 
-        private void checkScrollBar()
+        private void CheckScrollBar()
         {
             if (panelForMainLayared.Height > mainWindowFlowLayout.Height)
             {
@@ -170,7 +170,7 @@ namespace ChatWinForms
 
         private void MainChatWindow_SizeChanged(object sender, EventArgs e)
         {
-            checkScrollBar();
+            CheckScrollBar();
         }
     }
 }

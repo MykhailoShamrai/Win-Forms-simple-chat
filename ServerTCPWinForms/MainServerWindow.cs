@@ -110,6 +110,7 @@ namespace ServerTCPWinForms
             }
         }
 
+
         public async void DisconnectUser(int Id)
         {
             await Database.semaphore.WaitAsync();
@@ -195,6 +196,16 @@ namespace ServerTCPWinForms
             int b = (int)dataGridView[dataGridView.Columns["colID"].Index, e.RowIndex].Value;
 
             DisconnectUser(b);
+        }
+
+        private void sendTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+
+            if (e.KeyCode == Keys.Enter)
+            {
+                sendButton_Click(sender, e);
+            }
+            
         }
     }
 }
