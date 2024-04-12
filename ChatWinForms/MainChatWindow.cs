@@ -42,13 +42,13 @@ namespace ChatWinForms
                 ChatWinForms.Messages.Message message = new ChatWinForms.Messages.Message(client.UserName!, sendTextBox.Text, DateTime.Now);
                 var a = SendMessageToServ(message);
             }
-            addMessange(sendTextBox.Text, DateTime.Now, user, true);
+            AddMessage(sendTextBox.Text, DateTime.Now, user, true);
             sendTextBox.Text = "";
         }
 
 
 
-        void addMessange(string messange, DateTime time, string userName, bool isYourth)
+        void AddMessage(string messange, DateTime time, string userName, bool isYourth)
         {
             chatMesgBox msgBox = new chatMesgBox()
             {
@@ -94,9 +94,9 @@ namespace ChatWinForms
 
         private void mainWindowFlowLayout_SizeChanged(object sender, EventArgs e)
         {
-            foreach (Control msgBox in mainWindowFlowLayout.Controls)
+            foreach (Control contorl in mainWindowFlowLayout.Controls)
             {
-                msgBox.Width = mainWindowFlowLayout.ClientSize.Width - msgBox.Margin.Left - msgBox.Margin.Right;
+                contorl.Width = mainWindowFlowLayout.ClientSize.Width - contorl.Margin.Left - contorl.Margin.Right;
             }
         }
 
@@ -149,12 +149,11 @@ namespace ChatWinForms
 
         private void addingMessageOnReceived(ChatWinForms.Messages.Message message)
         {
-            Invoke(() => addMessange(message.Text, message.Time, message.Sender, false));
+            Invoke(() => AddMessage(message.Text, message.Time, message.Sender, false));
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Client.EndOfWork();
             Close();
         }
 
@@ -171,6 +170,14 @@ namespace ChatWinForms
         private void MainChatWindow_SizeChanged(object sender, EventArgs e)
         {
             CheckScrollBar();
+        }
+
+        private void MainChatWindow_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            client.Connected -= OnConnected;
+            client.Disconnected -= OnDisconnected;
+            client.MessageReceived -= addingMessageOnReceived;
+            client.EndOfWork();
         }
     }
 }
