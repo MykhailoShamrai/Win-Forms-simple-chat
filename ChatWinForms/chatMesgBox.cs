@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
+﻿using System.ComponentModel;
 using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace ChatWinForms
 {
+    /// <summary>
+    /// Window that contains text of a message, date and username. 
+    /// </summary>
     public partial class chatMesgBox : UserControl
     {
+        /// <summary>
+        /// Radius of rounded corners.
+        /// </summary>
         private int radius = 20;
         [DefaultValue(20)]
         public int Radius
@@ -23,33 +19,33 @@ namespace ChatWinForms
             set
             {
                 radius = value;
-                this.RecreateRegion();
+                RecreateRegion();
             }
         }
 
-        private string date;
-        public string Date
+        private string? date = null;
+        public string? Date
         {
             get { return date; }
             set
             {
                 date = value;
-                this.dateLabel.Text = date;
+                dateLabel.Text = date;
             }
         }
-        private string user;
-        public string User
+        private string? user = null;
+        public string? User
         {
             get { return user; }
             set
             {
                 user = value;
-                this.userLabel.Text = user;
+                userLabel.Text = user;
 
             }
         }
-        private string message;
-        public string Message
+        private string? message = null;
+        public string? Message
         {
             get { return message; }
             set
@@ -86,27 +82,35 @@ namespace ChatWinForms
         private void RecreateRegion()
         {
             var bounds = ClientRectangle;
-            this.Region = Region.FromHrgn(CreateRoundRectRgn(bounds.Left, bounds.Top,
+            Region = Region.FromHrgn(CreateRoundRectRgn(bounds.Left, bounds.Top,
                 bounds.Right, bounds.Bottom, Radius, radius));
-            this.Invalidate();
+            Invalidate();
         }
 
         protected override void OnSizeChanged(EventArgs e)
         {
-            base.OnSizeChanged(e);
-            this.RecreateRegion();
+           base.OnSizeChanged(e);
+           RecreateRegion();
         }
 
         //https://stackoverflow.com/questions/8361555/why-doesnt-textrenderer-measuretext-work-properly
-        void changeSizeAccordingToText()
+        /// <summary>
+        /// Private method, that will be called on changing the size of a window.  
+        /// </summary>
+        private void changeSizeAccordingToText()
         {
+            // Finding the number of lines.
             int lineCount = messageTextBox.GetLineFromCharIndex(messageTextBox.TextLength) + 1;
+            // Changing height of a control textBox and whole window.
             Height = Height - messageTextBox.Height + lineCount * messageTextBox.Font.Height;
             messageTextBox.Height = lineCount * messageTextBox.Font.Height;
         }
 
-
-
+        /// <summary>
+        /// Method that is a response on event for changed size of textBox of yhis window.
+        /// </summary>
+        /// <param name="sender">Sender of an event</param>
+        /// <param name="e">Arguments of an event</param>
         private void chatMesgLayoutPanel_SizeChanged(object sender, EventArgs e)
         {
             changeSizeAccordingToText();

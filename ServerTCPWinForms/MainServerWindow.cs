@@ -1,23 +1,19 @@
-using Microsoft.VisualBasic.ApplicationServices;
-using System.ComponentModel;
 using System.Net;
 using System.Text;
-using System.Windows.Forms;
 
 
 namespace ServerTCPWinForms
 {
     public partial class MainServerWindow : Form
     {
-
-        private Server? server = null;
+        private Server? _server = null;
         bool Started = false;
         public MainServerWindow()
         {
             InitializeComponent();
-            dataGridView.DataSource = Database.list;
+            dataGridView.DataSource = Database.List;
             UserExiting += WriteOnDisconnected;
-            dataGridView.CellClick += new DataGridViewCellEventHandler(dataGridView_CellClick);
+            dataGridView.CellClick += new DataGridViewCellEventHandler(dataGridView_CellClick!);
         }
 
         public event Action<string> UserExiting;
@@ -28,10 +24,13 @@ namespace ServerTCPWinForms
 
         private void checkBoxKey_CheckedChanged(object sender, EventArgs e)
         {
-            textBoxKey.UseSystemPasswordChar = (checkBoxKey.Checked) ? false : true;
+            textBoxKey.UseSystemPasswordChar = checkBoxKey.Checked ? false : true;
         }
 
-        private void buttonStop_Click(object sender, EventArgs e)
+        /// <summary>
+        /// Method, that is called on Stop button clicked. 
+        /// </summary>
+        private async void buttonStop_Click(object sender, EventArgs e)
         {
             if (!Started)
             {
@@ -41,10 +40,11 @@ namespace ServerTCPWinForms
                 textBoxUsername.Enabled = false;
 
                 Started = true;
-                server = new Server(textBoxAddress.Text, int.Parse(textBoxPort.Text), textBoxUsername.Text, textBoxKey.Text);
+                // Creating new server instance.
+                _server = new Server(textBoxAddress.Text, int.Parse(textBoxPort.Text), textBoxUsername.Text, textBoxKey.Text);
 
                 AddHandlersToServer();
-                server.StartListening();
+                await _server.StartListening();
             }
             else
             {
@@ -57,6 +57,12 @@ namespace ServerTCPWinForms
             WriteToLog(DateTime.Now, "", "Listening for incoming connections...");
         }
 
+        /// <summary>
+        /// Method that writes a log message to textBox.
+        /// </summary>
+        /// <param name="time">Time of writing a log.</param>
+        /// <param name="user">Name of a user.</param>
+        /// <param name="message">Text of a message.</param>
         private void WriteToLog(DateTime time, string user, string message)
         {
             user = (user == "") ? "" : user + ": ";
@@ -72,16 +78,20 @@ namespace ServerTCPWinForms
             });
         }
 
+        /// <summary>
+        /// Adding new client to a list of connected clients.
+        /// </summary>
+        /// <param name="Id">ID of a client</param>
+        /// <param name="info">Client with additional information</param>
         private void AddToList(int Id, ClientsInformation info)
         {
-            Database.semaphore.WaitAsync();
-            Invoke(() => Database.list.Add(info));
-            Database.semaphore.Release();
+            Database.Semaphore.WaitAsync();
+            Invoke(() => Database.List.Add(info));
+            Database.Semaphore.Release();
         }
 
         private void ErrorAndSimpleMEssagesWriting(string mesg)
         {
-            //MakeConnectingPossobleIfError();
             WriteToLog(DateTime.Now, "", mesg);
         }
 
@@ -100,9 +110,9 @@ namespace ServerTCPWinForms
             string text = sendTextBox.Text;
             sendTextBox.Text = "";
             ChatWinForms.Messages.Message msg = new ChatWinForms.Messages.Message(textBoxUsername.Text, text, DateTime.Now);
-            if (server != null)
+            if (_server != null)
             {
-                server.SendToAll(msg, -1);
+                _server.SendToAll(msg, -1);
             }
             else
             {
@@ -110,38 +120,41 @@ namespace ServerTCPWinForms
             }
         }
 
-
+        /// <summary>
+        /// Method for disconnecting user from server.
+        /// </summary>
+        /// <param name="Id">Id of a client that should be disconnected.</param>
         public async void DisconnectUser(int Id)
         {
-            await Database.semaphore.WaitAsync();
-            for (int i = 0; i < Database.list.Count; i++)
+            await Database.Semaphore.WaitAsync();
+            // Finding in "Database" a client with proper id and cancelling from a list.
+            for (int i = 0; i < Database.List.Count; i++)
             {
-                if (Database.list[i].ID == Id)
+                if (Database.List[i].ID == Id)
                 {
-                    var inf = Database.list[i];
+                    var inf = Database.List[i];
                     OnUserExiting(inf.Name);
                     inf.GetClient().EndOfWork();
-                    Invoke(() => Database.list.RemoveAt(i));
+                    Invoke(() => Database.List.RemoveAt(i));
                     break;
                 }
             }
-            Database.semaphore.Release();
+            Database.Semaphore.Release();
         }
 
         public async void DisconnectAll()
         {
-            await Database.semaphore.WaitAsync();
-            while (Database.list.Count > 0)
+            await Database.Semaphore.WaitAsync();
+            while (Database.List.Count > 0)
             {
-                var inf = Database.list[0];
+                var inf = Database.List[0];
                 string usr = inf.Name;
                 OnUserExiting(usr);
                 inf.GetClient().EndOfWork();
-                Database.list.RemoveAt(0);
-
+                Database.List.RemoveAt(0);
             }
-            Database.list.Clear();
-            Database.semaphore.Release();
+            Database.List.Clear();
+            Database.Semaphore.Release();
         }
 
         /// <summary>
@@ -155,24 +168,27 @@ namespace ServerTCPWinForms
             textBoxUsername.Enabled = true;
             buttonStop.Text = "Start";
             Started = false;
-            WriteToLog(DateTime.Now, "", $"{server!.UserName} has stopped");
-            server!.tokenS.Cancel();
+            WriteToLog(DateTime.Now, "", $"{_server!.UserName} has stopped");
+            _server!.tokenS.Cancel();
         }
 
+        /// <summary>
+        /// Subscribing to all required events.
+        /// </summary>
         private void AddHandlersToServer()
         {
-            server.Listening += WritingLogOnListening;
-            server.DisconnectedFrom += DisconnectUser;
-            server.Added += AddToList;
-            server.BadHostname += ErrorAndSimpleMEssagesWriting;
-            server.WaitingOnSocket += StartListeningLog;
-            server.UserConnected += ErrorAndSimpleMEssagesWriting;
-            server.BadAuthorisation += ErrorAndSimpleMEssagesWriting;
-            server.CheckingAnAuthorisation += ErrorAndSimpleMEssagesWriting;
-            server.MessageReceived += WriteToLog;
-            server.DisconnectAll += DisconnectAll;
-            server.SocketErrorWhileListenerStarting += ErrorAndSimpleMEssagesWriting;
-            server.SocketErrorWhileListenerStarting += MakeConnectingPossible; // After error ocurs we want to make it possible again to connect
+            _server!.Listening += WritingLogOnListening;
+            _server!.DisconnectedFrom += DisconnectUser;
+            _server!.Added += AddToList;
+            _server!.BadHostname += ErrorAndSimpleMEssagesWriting;
+            _server!.WaitingOnSocket += StartListeningLog;
+            _server!.UserConnected += ErrorAndSimpleMEssagesWriting;
+            _server!.BadAuthorisation += ErrorAndSimpleMEssagesWriting;
+            _server!.CheckingAnAuthorisation += ErrorAndSimpleMEssagesWriting;
+            _server!.MessageReceived += WriteToLog;
+            _server!.DisconnectAll += DisconnectAll;
+            _server!.SocketErrorWhileListenerStarting += ErrorAndSimpleMEssagesWriting;
+            _server!.SocketErrorWhileListenerStarting += MakeConnectingPossible; // After error occurs we want to make it possible again to connect
         }
 
         private void buttonDisconnectAll_Click(object sender, EventArgs e)
@@ -200,12 +216,10 @@ namespace ServerTCPWinForms
 
         private void sendTextBox_KeyDown(object sender, KeyEventArgs e)
         {
-
             if (e.KeyCode == Keys.Enter)
             {
                 sendButton_Click(sender, e);
-            }
-            
+            }   
         }
     }
 }

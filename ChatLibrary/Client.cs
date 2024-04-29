@@ -1,31 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Policy;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace ChatWinForms
 {
     public class Client
     {
         public bool IsConnected { get; set; }
-        private Thread? checkConnectionThread;
-        private StreamReader? StreamReader;
-        private StreamWriter? StreamWriter;
+        private Thread? checkConnectionThread = null;
+        private StreamReader? StreamReader = null;
+        private StreamWriter? StreamWriter = null;
 
         public TcpClient? tcpClient { get; set; }
-        private string? _userName;
+        private string? _userName = null;
         public string? UserName
         {
             get { return _userName; }
             set { _userName = value; }
         }
-        private string? _password;
+        private string? _password = null;
         public string? Password
         {
             get { return _password; }
@@ -55,7 +48,7 @@ namespace ChatWinForms
             Password = password;
         }
         /// <summary>
-        /// Event on connecting with server
+        /// Event on connected with server.
         /// </summary>
         public event Action? Connected;
         private void OnConnected()
@@ -64,7 +57,7 @@ namespace ChatWinForms
         }
 
         /// <summary>
-        /// Event on disconnection with server
+        /// Event on disconnection with.
         /// </summary>
         public event Action? Disconnected;
 
@@ -80,7 +73,7 @@ namespace ChatWinForms
         }
 
         /// <summary>
-        /// Event on bad hostname
+        /// Event on bad hostname.
         /// </summary>
         public event Action<string>? BadHostname;
 
@@ -90,16 +83,16 @@ namespace ChatWinForms
         }
 
         /// <summary>
-        /// Action while trying to establish connection
+        /// Event while trying to establish connection.
         /// </summary>
-        public event Action ConnectionEstablishing;
+        public event Action? ConnectionEstablishing;
         private void OnConnectionEstablished()
         {
             ConnectionEstablishing?.Invoke();
         }
 
         /// <summary>
-        /// Action for error while trying to establish connection
+        /// Event for error while trying to establish connection.
         /// </summary>
         public event Action<string>? ErronOnConnectionEstablishing;
         private void OnErrorOnConnectionEstablishing(string msg)
@@ -108,16 +101,16 @@ namespace ChatWinForms
         }
 
         /// <summary>
-        /// Action while sanding an authorisation data
+        /// Event that is executed while sanding an authorization data.
         /// </summary>
-        public event Action SendedAuthorisation;
+        public event Action? SendedAuthorisation;
         private void OnSendedAuthorisation()
         {
             SendedAuthorisation?.Invoke();
         }
 
         /// <summary>
-        /// Action on error ocured while sending authorisation data
+        /// Event on error occurred while sending authorization data.
         /// </summary>
         public event Action<string>? ErrorOnSendingAuthorisation;
         private void OnErrorOnSendingAuthorisation(string msg)
@@ -126,25 +119,25 @@ namespace ChatWinForms
         }
 
         /// <summary>
-        /// Action on checking an authorisation
+        /// Event on checking an authorization.
         /// </summary>
-        public event Action CheckingAuthorisation;
+        public event Action? CheckingAuthorisation;
         private void OnCheckingAuthorisation()
         {
             CheckingAuthorisation?.Invoke();
         }
 
         /// <summary>
-        /// 
+        /// Event on accepted authorization.
         /// </summary>
-        public event Action AcceptedAuthorisation;
+        public event Action? AcceptedAuthorisation;
         private void OnAcceptedAuthorisation()
         {
             AcceptedAuthorisation?.Invoke();
         }
 
         /// <summary>
-        /// Action on rejected authorisation
+        /// Action on rejected authorisations
         /// </summary>
         public event Action<string>? RejectedAuthorisation;
         private void OnRejectedAuthorisation(string msg)
@@ -152,13 +145,13 @@ namespace ChatWinForms
             RejectedAuthorisation?.Invoke(msg);
         }
 
-        public event Action<ChatWinForms.Messages.Message> MessageReceived;
+        public event Action<ChatWinForms.Messages.Message>? MessageReceived;
         private void OnMessageReceived(ChatWinForms.Messages.Message msg)
         {
             MessageReceived?.Invoke(msg);
         }
 
-        public event Action<ChatWinForms.Messages.Message, int> MessageReceivedFrom;
+        public event Action<ChatWinForms.Messages.Message, int>? MessageReceivedFrom;
         private void OnMessageReceivedFrom(ChatWinForms.Messages.Message msg, int Id)
         {
             MessageReceivedFrom?.Invoke(msg, Id);
@@ -188,7 +181,7 @@ namespace ChatWinForms
         
             
         /// <summary>
-        /// One solid function for connection and authorizing routine
+        /// One solid function for connection and authorizing routine.
         /// </summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
@@ -207,7 +200,8 @@ namespace ChatWinForms
             }
 
             tcpClient = new TcpClient();
-            // Trying to connect
+
+            // Try to establish connection.
             int res = await TryToConnect(addr, int.Parse(port));
             if (res == -1)
             {
@@ -222,8 +216,7 @@ namespace ChatWinForms
             StreamWriter.AutoFlush = true;
             StreamReader = new StreamReader(tcpClient.GetStream());
 
-
-            // Sending authorization
+            // Sending an authorization request.
             int askres = await AskAuthorization();
             if (askres == -1)
             {
@@ -232,7 +225,7 @@ namespace ChatWinForms
             }
             // completed 
 
-            // Waiting for a response (must be async)
+            // Waiting for a response and check authorization.
             if (await CheckAuthorization())
             {
                 OnAcceptedAuthorisation();
@@ -244,14 +237,14 @@ namespace ChatWinForms
                 return;
             }
 
-            // Good connection
+            // Succesfully established connection.
             OnConnected();
             StartCheckingIncoming();
         }
 
         public async Task<int> SendRequest(string message)
         {
-           if (StreamWriter != null)
+            if (StreamWriter != null)
             {
                 try
                 {
@@ -267,16 +260,13 @@ namespace ChatWinForms
                     return -1;
                 }
                 return 0;
-           }
-           else
-           {
-                return -1;
-           }
+            }
+            return -1;
         }
 
 
         /// <summary>
-        /// Function for waiting until message comes
+        /// Method for asynchronously waiting until message arrives.
         /// </summary>
         /// <returns>null if disconnected.</returns>
         public async Task<string?> HaveAnAnswer()
@@ -296,6 +286,10 @@ namespace ChatWinForms
             }
         }
 
+        /// <summary>
+        /// Method for asynchronously sending a connection request to server.
+        /// </summary>
+        /// <returns>Method return 0 if authorization data was send, otherwise -1 is send.</returns>
         private async Task<int> AskAuthorization()
         {
             ChatWinForms.Messages.Authorization authorization = new ChatWinForms.Messages.Authorization(UserName!, Password!);
@@ -311,6 +305,10 @@ namespace ChatWinForms
             return 0;
         }
 
+        /// <summary>
+        /// Method for checking authorization response. 
+        /// </summary>
+        /// <returns>Method returns true, if authorization is accepted. False is returned if authorisation was rejected.</returns>
         private async Task<bool> CheckAuthorization()
         {
             OnCheckingAuthorisation();
@@ -347,6 +345,9 @@ namespace ChatWinForms
             }
         }
 
+        /// <summary>
+        /// Method that starts reading on Thread.
+        /// </summary>
         public void StartCheckingIncoming()
         {
             checkConnectionThread = new Thread(ReadOnThreadClient);
@@ -354,6 +355,10 @@ namespace ChatWinForms
             checkConnectionThread.Start();
         }
 
+        /// <summary>
+        /// Method that starts reading on Thread, method requires id of a client to identify, which client had a message.
+        /// /// </summary>
+        /// <param name="Id">Id of a client.</param>
         public void StartCheckingIncoming(int Id)
         {
             checkConnectionThread = new Thread(() => ReadOnThreadClientInServer(Id));
@@ -361,7 +366,10 @@ namespace ChatWinForms
             checkConnectionThread.Start();
         }
 
-         void ReadOnThreadClient()
+        /// <summary>
+        /// Method, that is called in other thread to asynchronously wait for messages.
+        /// </summary>
+        private void ReadOnThreadClient()
         {
             string? str = null;
 
@@ -385,7 +393,11 @@ namespace ChatWinForms
             Disconnect();
         }
 
-        void ReadOnThreadClientInServer(int Id)
+        /// <summary>
+        /// Method, that is called in other thread to asynchronously wait for messages. Is used with clients, that have information about
+        /// their id.
+        /// </summary>
+        private void ReadOnThreadClientInServer(int Id)
         {
             string? str = null;
 

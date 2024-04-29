@@ -1,5 +1,8 @@
 ﻿namespace ChatWinForms.Messages
 {
+    /// <summary>
+    /// Class for messages that are send between client and server.
+    /// </summary>
     public class Message
     {
         public const string Authorized = "Authorized";

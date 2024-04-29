@@ -1,15 +1,7 @@
 ﻿using ChatWinForms;
-using Microsoft.VisualBasic;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace ServerTCPWinForms
 {
@@ -33,19 +25,27 @@ namespace ServerTCPWinForms
             Password = key;
         }
 
-
+        /// <summary>
+        /// Event for listening on TcpListener.
+        /// </summary>
         public event Action? Listening;
         private void OnListening()
         {
             Listening?.Invoke();
         }
 
+        /// <summary>
+        /// Event when new client is ready to be added to list.
+        /// </summary>
         public event Action<int, ClientsInformation>? Added;
         private void OnAdded(int Id, ClientsInformation info)
         {
             Added?.Invoke(Id, info);
         }
-
+        
+        /// <summary>
+        /// Event on bad name of hostname.
+        /// </summary>
         public event Action<string>? BadHostname;
         private void OnBadHostname(string mesg)
         {
@@ -58,47 +58,70 @@ namespace ServerTCPWinForms
             WaitingOnSocket?.Invoke(addr, port);
         }
 
+        /// <summary>
+        /// Event on checkin an authorisation from data.
+        /// </summary>
         public event Action<string>? CheckingAnAuthorisation;
         private void OnCheckingAnAuthorisation(string mesg)
         {
             CheckingAnAuthorisation?.Invoke(mesg);
         }
 
-        public event Action<string>?  BadAuthorisation;
+        /// <summary>
+        /// Event that is invoked if authorisation data are bad.
+        /// </summary>
+        public event Action<string>? BadAuthorisation;
         private void OnBadAuthorisation(string mesg)
         {
             BadAuthorisation?.Invoke(mesg);
         }
 
+        /// <summary>
+        /// Event on connected user.
+        /// </summary>
         public event Action<string>? UserConnected;
         private void OnUserConnected(string mesg)
         {
             BadAuthorisation?.Invoke(mesg);
         }   
+
+        /// <summary>
+        /// Event on received message.
+        /// </summary>
         public event Action<DateTime, string, string>? MessageReceived;
         private void OnMessageReceived(DateTime timestamp, string user, string message)
         {
             MessageReceived?.Invoke(timestamp, user, message);
         }
 
+        /// <summary>
+        /// Event for disconnected from specifeied client.
+        /// </summary>
         public event Action<int>? DisconnectedFrom;
         private void OnDisconnectedFrom(int Id)
         {
             DisconnectedFrom?.Invoke(Id);
         }
 
-        public event Action DisconnectAll;
+        /// <summary>
+        /// Event, that is invoked when server need to disconnect all users.
+        /// </summary>
+        public event Action? DisconnectAll;
         private void OnDisconnectAll()
         {
-            DisconnectAll.Invoke();
+            DisconnectAll?.Invoke();
         }
 
-        public event Action<string> SocketErrorWhileListenerStarting;
+        public event Action<string>? SocketErrorWhileListenerStarting;
         private void OnSocketError(string msg)
         {
-            SocketErrorWhileListenerStarting.Invoke(msg);
+            SocketErrorWhileListenerStarting?.Invoke(msg);
         }
 
+        /// <summary>
+        /// Method that parses address from field of a class.
+        /// </summary>
+        /// <returns>Returns IPAddress address if parsing was successful. Otherwise null is returned.</returns>
         private IPAddress? TryToParseIP()
         {
             IPAddress? addr;
@@ -119,14 +142,17 @@ namespace ServerTCPWinForms
             return addr;
         }
 
-        public async void StartListening()
+        /// <summary>
+        /// Async method for listening on TcpListener for new clients connections. After connection establishing, client is added to a list of clients.
+        /// </summary>
+        /// <returns></returns>
+        public async Task StartListening()
         {
             IPAddress? addr;
             if ((addr = TryToParseIP()) == null)
             {
                 return;
             }
-
             try
             {
                 listener = new TcpListener(addr, Port);
@@ -150,7 +176,8 @@ namespace ServerTCPWinForms
                     OnSocketError(ex.Message);
                     return;
                 }
-                // listening
+
+                // Listening.
                 Client client = new Client();
                 var token = tokenS.Token;
                 TcpClient tmpClient;
@@ -204,7 +231,7 @@ namespace ServerTCPWinForms
             lock (idLock)
             {
                 ClientsInformation info = new ClientsInformation(id, auth.Sender, client);
-                // adding
+                // Adding new client to list.
                 OnAdded(id, info);
                 // Adding handler for event, when message is recieved
                 client.MessageReceivedFrom += SendToAll;
@@ -214,13 +241,18 @@ namespace ServerTCPWinForms
             }
         }
 
+        /// <summary>
+        /// Method that sends a message to all connectes clients.
+        /// </summary>
+        /// <param name="message">Message to be send</param>
+        /// <param name="Id">Id, from whom message was received</param>
         public async void SendToAll(ChatWinForms.Messages.Message message, int Id)
         {
-            await Database.semaphore.WaitAsync();
+            await Database.Semaphore.WaitAsync();
             string user = message.Sender;
             if (Id != -1)
             {
-                foreach (var info in Database.list)
+                foreach (var info in Database.List)
                 {
                     if (info.ID == Id)
                     {
@@ -236,7 +268,7 @@ namespace ServerTCPWinForms
             OnMessageReceived(usrmsg.Time, user, usrmsg.Text);
             string toSend = JsonSerializer.Serialize(usrmsg);
 
-            foreach (var info in Database.list)
+            foreach (var info in Database.List)
             {
                 if (info.ID != Id)
                 {
@@ -244,7 +276,7 @@ namespace ServerTCPWinForms
                     await info.GetClient().SendRequest(toSend);
                 }
             }
-            Database.semaphore.Release();
+            Database.Semaphore.Release();
         }
 
         public void DisconnectUser(int Id)

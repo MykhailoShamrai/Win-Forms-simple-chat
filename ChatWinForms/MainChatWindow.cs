@@ -11,35 +11,29 @@ namespace ChatWinForms
 {
     public partial class MainChatWindow : Form
     {
-        private Client client;
+        private Client _client;
         public Client Client
         {
-            get { return client; }
-        }
-
-        public static event Action<ChatWinForms.Messages.Message>? MessageSend;
-        private void OnMessageSend(ChatWinForms.Messages.Message mesg)
-        {
-            MessageSend?.Invoke(mesg);
+            get { return _client; }
         }
 
         public MainChatWindow()
         {
-            client = new Client();
+            _client = new Client();
             InitializeComponent();
             CheckScrollBar();
-            client.Connected += OnConnected;
-            client.Disconnected += OnDisconnected;
-            client.MessageReceived += addingMessageOnReceived;
+            _client.Connected += OnConnected;
+            _client.Disconnected += OnDisconnected;
+            _client.MessageReceived += addingMessageOnReceived;
         }
 
 
         private void buttonSend_Click(object sender, EventArgs e)
         {
             string user = "You";
-            if (client.IsConnected)
+            if (_client.IsConnected)
             {
-                ChatWinForms.Messages.Message message = new ChatWinForms.Messages.Message(client.UserName!, sendTextBox.Text, DateTime.Now);
+                ChatWinForms.Messages.Message message = new ChatWinForms.Messages.Message(_client.UserName!, sendTextBox.Text, DateTime.Now);
                 var a = SendMessageToServ(message);
             }
             AddMessage(sendTextBox.Text, DateTime.Now, user, true);
@@ -47,12 +41,18 @@ namespace ChatWinForms
         }
 
 
-
-        void AddMessage(string messange, DateTime time, string userName, bool isYourth)
+        /// <summary>
+        /// Method that adds new message to space in main window, depending on information, if it's "my" or "not my" message.
+        /// </summary>
+        /// <param name="message">Text of a message</param>
+        /// <param name="time">Time of sending message</param>
+        /// <param name="userName">Name of a user that send a message</param>
+        /// <param name="isYourth">bool that shows is the message "our" or another user</param>
+        void AddMessage(string message, DateTime time, string userName, bool isYourth)
         {
             chatMesgBox msgBox = new chatMesgBox()
             {
-                Message = messange,
+                Message = message,
                 Date = time.ToString("HH:mm"),
                 User = userName
             };
@@ -70,6 +70,9 @@ namespace ChatWinForms
             panelForMainLayared.ScrollControlIntoView(msgBox);
         }
 
+        /// <summary>
+        /// Makes possible that scrollbar is always visible.
+        /// </summary>
         private void CheckScrollBar()
         {
             if (panelForMainLayared.Height > mainWindowFlowLayout.Height)
@@ -84,6 +87,9 @@ namespace ChatWinForms
             }
         }
 
+        /// <summary>
+        /// Pressing Enter key.
+        /// </summary>
         private void textBox1_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -92,6 +98,9 @@ namespace ChatWinForms
             }
         }
 
+        /// <summary>
+        /// Changing width of all controls on changing size of a window.
+        /// </summary>
         private void mainWindowFlowLayout_SizeChanged(object sender, EventArgs e)
         {
             foreach (Control contorl in mainWindowFlowLayout.Controls)
@@ -104,15 +113,14 @@ namespace ChatWinForms
         {
             ConnectionForm connectionForm = new ConnectionForm(this);
             connectionForm.ShowDialog();
-
             connectionForm.Dispose();
         }
         /// <summary>
-        /// Adding a new label to a Form with Connected text, enabling button Disconnect and disabling button Connect
+        /// Adding a new label to a Form with Connected text, enabling button Disconnect and disabling button Connect.
         /// </summary>
         private void OnConnected()
         {
-            client.IsConnected = true;
+            _client.IsConnected = true;
             connectToolStripMenuItem.Enabled = false;
             disconnectToolStripMenuItem.Enabled = true;
             Label label = new Label();
@@ -121,16 +129,14 @@ namespace ChatWinForms
             label.TextAlign = ContentAlignment.MiddleCenter;
             Invoke(() => mainWindowFlowLayout.Controls.Add(label));
             panelForMainLayared.ScrollControlIntoView(label);
-
         }
 
-
         /// <summary>
-        /// Adding a new labl to a Form with Disconnected text, enabling button Connect and disabling button Disconnect
+        /// Adding a new labl to a Form with Disconnected text, enabling button Connect and disabling button Disconnect.
         /// </summary>
         private void OnDisconnected()
         {
-            client.IsConnected = false;
+            _client.IsConnected = false;
             connectToolStripMenuItem.Enabled = true;
             disconnectToolStripMenuItem.Enabled = false;
             Label label = new Label();
@@ -144,7 +150,7 @@ namespace ChatWinForms
 
         private void disconnectToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            client.EndOfWork();
+            Client.EndOfWork();
         }
 
         private void addingMessageOnReceived(ChatWinForms.Messages.Message message)
@@ -160,10 +166,10 @@ namespace ChatWinForms
         private async Task SendMessageToServ(ChatWinForms.Messages.Message msg)
         {
             string srt = JsonSerializer.Serialize(msg);
-            int res = await client.SendRequest(srt);
+            int res = await _client.SendRequest(srt);
             if (res == -1)
             {
-                client.Disconnect();
+                Client.Disconnect();
             }
         }
 
@@ -174,10 +180,10 @@ namespace ChatWinForms
 
         private void MainChatWindow_FormClosing(object sender, FormClosingEventArgs e)
         {
-            client.Connected -= OnConnected;
-            client.Disconnected -= OnDisconnected;
-            client.MessageReceived -= addingMessageOnReceived;
-            client.EndOfWork();
+            Client.Connected -= OnConnected;
+            Client.Disconnected -= OnDisconnected;
+            Client.MessageReceived -= addingMessageOnReceived;
+            Client.EndOfWork();
         }
     }
 }
